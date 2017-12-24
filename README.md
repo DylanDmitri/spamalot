@@ -2,7 +2,9 @@
 
 Better role assignments in Avalon.
 
-[Currently running here.](http://dylandmitri.pythonanywhere.com/).
+[Currently running here.](http://dylandmitri.pythonanywhere.com/)
+
+Warning: there's probably bugs.
 
 ## current features
 
@@ -27,4 +29,4 @@ Better role assignments in Avalon.
 #### improve role listing
 - ie "2 generic good" rather than "generic good, generic good"
     
- 
+
