@@ -1,6 +1,8 @@
-# spamalot
+# SPAMALOT
 
 Better role assignments in Avalon.
+
+Currently running on [pythonanywhere](http://dylandmitri.pythonanywhere.com/).
 
 ## current features
 
