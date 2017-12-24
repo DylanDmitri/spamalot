@@ -10,7 +10,7 @@ create room
  
 join room
  - requires the room code
- - when everyone has joined, gives you information
+ - when everyone has joined, assigns roles and tells you everything you need to know
 
 ## future features
 
