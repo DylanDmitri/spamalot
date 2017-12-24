@@ -2,7 +2,7 @@
 
 Better role assignments in Avalon.
 
-Currently running on [pythonanywhere](http://dylandmitri.pythonanywhere.com/).
+[Currently running here.](http://dylandmitri.pythonanywhere.com/).
 
 ## current features
 
