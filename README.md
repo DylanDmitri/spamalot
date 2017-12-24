@@ -14,6 +14,8 @@ Better role assignments in Avalon. [Currently running here.](http://dylandmitri.
 
 ## future features
 
+#### Percival should see `Merlin` or `Morganna` rather than `Magicians` if there's only one of them. 
+
 #### Fixing weird css bits.
 
 #### bigger buttons for selecting roles
