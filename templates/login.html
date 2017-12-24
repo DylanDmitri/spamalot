@@ -1,0 +1,16 @@
+{% extends "default_child.html" %}
+{% block content %}
+    Choose a display name. This resets between sessions.
+
+    <form method="POST">
+        username: <input name="username">
+        <input type="submit" value="Submit">
+    </form>
+
+    {% if complaint %}
+    <p class="error">
+        {{ complaint }}
+    </p>
+    {% endif %}
+
+{%  endblock %}

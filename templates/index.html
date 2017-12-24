@@ -1,0 +1,23 @@
+{% extends "default.html" %}
+{% block body %}
+    <h4>
+        Hi there {{ username }}!!
+    </h4>
+    <p>
+        <form method="GET" action={{ url_for('login') }}>
+            <input type="submit" value="Change Username" style="background-color: #A3A3FA">
+        </form>
+    </p>
+    <p>
+    <form method="GET" action={{ url_for('make') }}>
+        <input type="submit" value="Make New Room" style="background-color: #A3FAA3">
+    </form>
+    </p>
+    <p>
+        <form method="GET" action={{ url_for('join') }}>
+            <input type="submit" value="Join Existing Room" style="background-color: #FAA3A3">
+        </form>
+    </p>
+
+{%  endblock %}
+
