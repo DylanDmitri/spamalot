@@ -1,10 +1,6 @@
 # SPAMALOT
 
-Better role assignments in Avalon.
-
-[Currently running here.](http://dylandmitri.pythonanywhere.com/)
-
-Warning: there's probably bugs.
+Better role assignments in Avalon. [Currently running here.](http://dylandmitri.pythonanywhere.com/)
 
 ## current features
 
@@ -17,6 +13,8 @@ Warning: there's probably bugs.
  - when everyone has joined, assigns roles and tells you everything you need to know
 
 ## future features
+
+#### Fixing weird css bits.
 
 #### bigger buttons for selecting roles
 
