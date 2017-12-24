@@ -167,6 +167,7 @@ def rematch(code):
         return redirect(url_for('room', code=oldroom.rematch))
 
     newcode = newRoomCode()
+    Room(newcode)  # bind the room globally
     oldroom.rematch = newcode
     session['config'] = oldroom.config
 
