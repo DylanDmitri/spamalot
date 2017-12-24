@@ -13,7 +13,7 @@ def render_login(complaints=[]):
         description="Choose a display name. This resets between sessions.",
         placeholder="username", complaints=complaints)
 
-def render_roompick(complaint):
+def render_roompick(complaint=''):
     return render_template('text_input.html',
         description="Type in the 4 letter RoomCode.",
         placeholder="ABCD", complaints=[complaint])
