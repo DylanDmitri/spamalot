@@ -1,10 +1,10 @@
-body            { font-family: sans-serif; background: #fafafa; }
+body            { font-family: sans-serif; background: #fafafa; font-size:20pt}
 form            { border-left-width: 2em; }
 input           { color:#000000;background-color:#e0e0e0;}
 
 .standard_alignment {width:100%; max-width:20em}
 
-input[type=submit] { height:4em; font-size:16pt; border-radius:8px; }
+input[type=submit] { height:4em; font-size:32pt; border-radius:8px; }
 input[type=text] { height:2.5em; width:80%; align-content:center; font-size:14pt;
                     background-color: #f0f0f0; border:black}
 
