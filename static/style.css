@@ -5,11 +5,12 @@ h1              { border-bottom: 2px solid #eee; }
 h4              { font-size: 1.2em; text-align: center; }
 form            { border-left-width: 2em; }
 input           { border:1em;color:#000000;background-color:#e0e0e0;}
-input[type=submit] { height:4em; width:100%; font-size:16pt; border-radius:8px; border-left-width:3px; border-left-color:#c0c0c0}
+input[type=submit] { height:4em; width:100%; max-width:13em; font-size:16pt; border-radius:8px; border-left-width:3px; border-left-color:#c0c0c0}
 
 
 .page           { margin: 2em auto; width: 35em; border: 5px solid #ccc;
                   padding: 0.8em; background: white; }
+.bottom_space   { margin-bottom: 20px; }
 .entries        { list-style: none; margin: 0; padding: 0; }
 .entries li     { margin: 0.8em 1.2em; }
 .entries li h2  { margin-left: -1em; }
@@ -20,3 +21,4 @@ input[type=submit] { height:4em; width:100%; font-size:16pt; border-radius:8px; 
 .flash          { background: #cee5F5; padding: 0.5em;
                   border: 1px solid #aacbe2; }
 .error          { background: #f0d6d6; padding: 0.5em; color: #cc060d }
+
