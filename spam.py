@@ -8,15 +8,19 @@ app.secret_key = b'\xd9\x97\x14\x85\xe8\xc7\xf5\xe3\x13\xc1\xfa\xc0\xc3\xa6\xa5'
 
 
 
-def render_login(complaints=[]):
+def render_login(complaints=None):
+    if complaints is None: complaints=[]
+
     return render_template('text_input.html',
         description="Choose a display name. This resets between sessions.",
         placeholder="username", complaints=complaints)
 
-def render_roompick(complaint=''):
+def render_roompick(complaint=None):
+    complaints = [] if complaint is None else [complaint]
+
     return render_template('text_input.html',
         description="Type in the 4 letter RoomCode.",
-        placeholder="ABCD", complaints=[complaint])
+        placeholder="ABCD", complaints=complaints)
 
 def mustHaveName(f):
     @wraps(f)
@@ -69,7 +73,7 @@ def login():
 
 @app.route('/login', methods=['POST'])
 def login_choose():
-    newname = request.form['username']
+    newname = request.form['user_input']
 
     complaints = [message for condition, message in (
                   (newname in nameset, 'Username is already taken.'),
@@ -130,7 +134,7 @@ def join():
 @nameRoute('/join', methods=['POST'])
 def join_choose():
 
-    roomcode = request.form['room_code']
+    roomcode = request.form['user_input']
     if roomcode not in rooms:
         return render_roompick("That room does not exist.")
 
