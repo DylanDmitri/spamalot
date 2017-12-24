@@ -1,0 +1,17 @@
+{% extends "base/default_with_back.html" %}
+{% block content %}
+    {{ description }}
+
+    <form method="POST">
+        <p class="bottom_space">
+            <input type=text name="username" placeholder="username">
+        </p>
+
+        <input type="submit" class="standard_alignment" value="Submit">
+    </form>
+
+    {% for complaint in complaints %}
+        <p class="error standard_alignment"> {{ complaint }} </p>
+    {% endfor %}
+
+{%  endblock %}

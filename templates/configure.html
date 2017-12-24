@@ -1,11 +1,11 @@
-{% extends "default_child.html" %}
+{% extends "base/default_with_back.html" %}
 {% block content %}
 
     <h2> room: "{{ room  }}"</h2>
 
     <form method="POST">
 
-        <select name="num_players">
+        <select name="num_players" class="standard_alignment" >
             <option value="5"  {{ config.players5  }}>5 players</option>
             <option value="6"  {{ config.players6  }}>6 players</option>
             <option value="7"  {{ config.players7  }}>7 players</option>
@@ -34,7 +34,7 @@
             <br>
         </p>
 
-        <input type="submit" value="Make Room">
+        <input type="submit" class="standard_alignment" value="Make Room">
     </form>
 
     <br>

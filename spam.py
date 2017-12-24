@@ -7,6 +7,17 @@ app = Flask(__name__)
 app.secret_key = b'\xd9\x97\x14\x85\xe8\xc7\xf5\xe3\x13\xc1\xfa\xc0\xc3\xa6\xa5'
 
 
+
+def render_login(complaints=[]):
+    return render_template('text_input.html',
+        description="Choose a display name. This resets between sessions.",
+        placeholder="username", complaints=complaints)
+
+def render_roompick(complaint):
+    return render_template('text_input.html',
+        description="Type in the 4 letter RoomCode.",
+        placeholder="ABCD", complaints=[complaint])
+
 def mustHaveName(f):
     @wraps(f)
     def present(*args, **kwargs):
@@ -18,17 +29,13 @@ def mustHaveName(f):
     return present
 
 def nameRoute(*route_args, **route_kwargs):
-
     def outer(action_function):
         @app.route(*route_args, **route_kwargs)
         @mustHaveName
         @wraps(action_function)
         def inner(*f_args, **f_kwargs):
-            # if 'name' not in session:
-            #     return redirect(url_for('login'))
             return action_function(*f_args, **f_kwargs)
         return inner
-
     return outer
 
 # ==================== UTILS ====================
@@ -58,15 +65,19 @@ def error_page(error):
 # -------------------- LOGIN --------------------
 @app.route('/login')
 def login():
-    return render_template('login.html', complaint='')
+    return render_login()
 
 @app.route('/login', methods=['POST'])
 def login_choose():
     newname = request.form['username']
-    if newname in nameset:
-        return render_template('login.html', complaint='Username is already taken.')
-    elif ',' in newname:
-        return render_template('login.html',complaint='No commas in username.')
+
+    complaints = [message for condition, message in (
+                  (newname in nameset, 'Username is already taken.'),
+                  (',' in newname, 'No commas in username'),
+                  (len(newname)<3, 'Username is too short'))
+                  if condition]
+    if complaints:
+        return render_login(complaints)
 
     oldname = names.get(session['uid'], None)
     if oldname and oldname in nameset:
@@ -114,24 +125,24 @@ def create_room(code):
 # -------------------- JOIN ----------------------
 @nameRoute('/join')
 def join():
-    return render_template('join_room.html', reject_message='')
+    return render_roompick()
 
 @nameRoute('/join', methods=['POST'])
 def join_choose():
 
     roomcode = request.form['room_code']
     if roomcode not in rooms:
-        return render_template('join_room.html', complaint="That room does not exist.")
+        return render_roompick("That room does not exist.")
 
     room = rooms[roomcode]
-    if room.full and session['uid'] not in room.players:
-        return render_template('join_room.html', complaint="That room is already full.")
+    if room.full and session['uid'] not in room.assignments:
+        return render_roompick("That room is already full.")
 
     return redirect(url_for('room', code=roomcode))
 
 @nameRoute('/room/<code>')
 def room(code):
-    if invalidRoomCode(code) or code not in rooms:
+    if code not in rooms:
         return error_page(f'room_{code}')
 
     room = rooms[code]

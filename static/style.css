@@ -1,11 +1,13 @@
 body            { font-family: sans-serif; background: #fafafa; }
-a, h1, h2       { color: #377ba8; }
-h1, h2          { font-family: 'Georgia', serif; margin: 10px; }
-h1              { border-bottom: 2px solid #eee; }
-h4              { font-size: 1.2em; text-align: center; }
 form            { border-left-width: 2em; }
-input           { border:1em;color:#000000;background-color:#e0e0e0;}
-input[type=submit] { height:4em; width:100%; max-width:13em; font-size:16pt; border-radius:8px; border-left-width:3px; border-left-color:#c0c0c0}
+input           { color:#000000;background-color:#e0e0e0;}
+
+.standard_alignment {width:100%; max-width:20em}
+
+input[type=submit] { height:4em; font-size:16pt; border-radius:8px; }
+input[type=text] { height:2.5em; width:80%; align-content:center; font-size:14pt;
+                    background-color: #f0f0f0; border:black}
+
 
 
 .page           { margin: 2em auto; width: 35em; border: 5px solid #ccc;

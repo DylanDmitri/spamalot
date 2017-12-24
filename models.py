@@ -46,7 +46,6 @@ vision_matrix = (
 
 class Room:
     def __init__(self, code):
-        # username : rolename
         self.code = code
         rooms[code] = self
 
