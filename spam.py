@@ -98,7 +98,7 @@ def login_choose():
 @app.route('/configure')
 def make():
     if len(rooms) >= 20:
-        error_page('full')
+        return error_page('full')
 
     code = newRoomCode()
     Room(code)  # binds to global 'rooms'
