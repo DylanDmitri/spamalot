@@ -95,7 +95,7 @@ def login_choose():
 # ==================== TABLE =====================
 # -------------------- CREATE --------------------
 
-@app.route('/configure')
+@nameRoute('/configure')
 def make():
     if len(rooms) >= 20:
         return error_page('full')

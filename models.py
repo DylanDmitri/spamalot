@@ -148,6 +148,9 @@ class Room:
                       (self.reverse_lookup.get(role,None) for role in target)
                       if uid not in (your_uid,None)]
 
+            if len(people) == 0:
+                continue
+
             l = (f'{people[0]} is',
                  f'{", ".join(people[:-1]) + " and " + people[-1] } are'
                  )[len(people) > 1]
