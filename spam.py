@@ -1,179 +1,159 @@
 from flask import Flask, request, render_template, redirect, url_for, session
-from functools import wraps
+from random import choice
+from string import ascii_letters
 from models import *
 
+# --- database ---
+class bidirection(dict):
+    def __setitem__(self, key, value):
+        for k in key, self.get(key):
+            if k in self:
+                del self[k]
+        super().__setitem__(key, value)
+        super().__setitem__(value, key)
+
+    def setdefault(self, k, d=None):
+        if k not in self:
+            self[k] = d
+
+names = bidirection()
+rooms = {}
+
+# ---- helpers ----
+def newRoomCode():
+    for _ in range(50):
+        tentative = ''.join(choice(ascii_letters) for _ in range(4))
+        if rooms.get(tentative) is None:
+            return tentative
+
+# --- framework ---
 
 app = Flask(__name__)
-app.secret_key = b'\xd9\x97\x14\x85\xe8\xc7\xf5\xe3\x13\xc1\xfa\xc0\xc3\xa6\xa5'
+app.secret_key = 'MMQUudG1Z7Xa6p4dqb0XcuYVxjT6J746npHCHgbs2zg'
 
+class ComplaintException(Exception): pass
 
+class Carafe:
 
-def render_login(complaints=None):
-    if complaints is None: complaints=[]
+    pages = []
+    @staticmethod
+    def run():
+        [p() for p in Carafe.pages]
+        app.run()
 
-    return render_template('text_input.html',
-        description="Choose a display name. This resets between sessions.",
-        placeholder="username", complaints=complaints)
+    def __init__(self):
+        self.name = self.__class__.__name__.lower()
+        self.path = (f'/{self.name}/', '/')[self.name == 'index']
+        self.template = f'{self.name}.html'
 
-def render_roompick(complaint=None):
-    complaints = [] if complaint is None else [complaint]
+        app.add_url_rule(self.path, self.name, self._render)
+        app.add_url_rule(self.path, self.name+'_post', self.form, methods=['POST'])
 
-    return render_template('text_input.html',
-        description="Type in the 4 letter RoomCode.",
-        placeholder="ABCD", complaints=complaints)
+        self.complaints = []
 
-def mustHaveName(f):
-    @wraps(f)
-    def present(*args, **kwargs):
-        if ('uid' not in session) or (session['uid'] not in names):
-            session['uid'] = ''.join(choice(ascii_lowercase) for _ in range(50))
+    def __init_subclass__(cls, **kwargs):
+        Carafe.pages.append(cls)
+
+    def _render(self):
+        if 'uid' not in session:
+            session['uid'] = ''.join(choice(ascii_letters) for _ in range(50))
+
+        if (session['uid'] not in names) and (self.name != 'login'):
             return redirect(url_for('login'))
-        else:
-            return f(*args, **kwargs)
-    return present
 
-def nameRoute(*route_args, **route_kwargs):
-    def outer(action_function):
-        @app.route(*route_args, **route_kwargs)
-        @mustHaveName
-        @wraps(action_function)
-        def inner(*f_args, **f_kwargs):
-            return action_function(*f_args, **f_kwargs)
-        return inner
-    return outer
+        return self.render()
 
-# ==================== UTILS ====================
-# -------------------- INDEX --------------------
-@nameRoute('/')
-def index():
-    return render_template('index.html', username=names[session['uid']])
+    def render(self):
+        return render_template(self.template, **self._context())
 
-# -------------------- ERROR --------------------
-@app.route('/error/<error>')
-def error(error):
-    if error.startswith('room'):
-        info = f'Room "{error[5:]}" does not exist'
-    else:
-        info = {
-            'hack': 'Stop trying to hack this website please',
-            'name': 'That name is already in use.',
-            'full': 'All rooms are full.',
-        }.get(error, 'Unknown Error')
+    def form(self):
+        try:
+            return self.process(request.form)
+        except ComplaintException:
+            return self.render()
 
-    return render_template('error.html', info=info)
+    def complain(self, args):
+        self.complaints = args[:]    # v important this comes first
+        if args:
+            raise ComplaintException()
 
-def error_page(error):
-    return redirect(url_for('error', error=error))
+    def _context(self):
+        return {**(self.context() or {}),
+                'complaints':self.complaints,
+                'username':names.get(session['uid'], '-')}
 
+    def context(self):
+        return None
 
-# -------------------- LOGIN --------------------
-@app.route('/login')
-def login():
-    return render_login()
+    process = NotImplemented
 
-@app.route('/login', methods=['POST'])
-def login_choose():
-    newname = request.form['user_input']
+# --------- the pages themselves ----------
+class Index(Carafe):
+    def context(self):
+        session['room'] = None
 
-    complaints = [message for condition, message in (
-                  (newname in nameset, 'Username is already taken.'),
+class Login(Carafe):
+    def process(self, form):
+        newname = form['user_input']
+
+        self.complain([message for condition, message in (
+                  (newname in names, 'Username is already taken.'),
                   (',' in newname, 'No commas in username'),
-                  (len(newname)<3, 'Username is too short'))
-                  if condition]
-    if complaints:
-        return render_login(complaints)
+                  (len(newname)<3, 'Username is too short'),
+                  (len(newname)>30,'Username is too long'))
+                  if condition])
 
-    oldname = names.get(session['uid'], None)
-    if oldname and oldname in nameset:
-        nameset.remove(oldname)
+        names[session['uid']] = newname
+        return redirect(url_for('index'))
 
-    nameset.add(newname)
-    names[session['uid']] = newname
-    return redirect(url_for('index'))
+class Create(Carafe):
+    def context(self):
+        code = newRoomCode()
 
+        if session.get('room'):
+            rooms[session['room']].rematch = code
 
-# ==================== TABLE =====================
-# -------------------- CREATE --------------------
+        session['room'] = code
+        rooms[code] = Room()
 
-@nameRoute('/configure')
-def make():
-    if len(rooms) >= 20:
-        return error_page('full')
+        return session.get('config', Configuration.default())
 
-    code = newRoomCode()
-    Room(code)  # binds to global 'rooms'
+    def process(self, form):
+        config = Configuration(form)
+        session['config'] = config
 
-    return redirect(url_for('configure_room', code=code))
+        self.complain(config.complaints)
 
-@nameRoute('/configure/<code>')
-def configure_room(code):
-    session.setdefault('config', Configuration.default())
-    return render_template('configure.html', room=code, config=session['config'], complaint='')
+        rooms[session['room']].assign_roles(config)
+        return redirect(url_for('game'))
 
-@nameRoute('/configure/<code>', methods=['POST'])
-def create_room(code):
+class Join(Carafe):
+    def process(self, form):
+        session['room'] = form['user_input']
+        room = rooms.get(session['room'])
 
-    if code not in rooms:
-        return error_page('room_'+code)
+        if room is None:
+            self.complain(['That room does not exist'])
+        if room.full and session['uid'] not in room:
+            self.complain(['That room is already full'])
 
-    config = Configuration.build(request.form)
-    session['config'] = config
+        return redirect(url_for('game'))
 
-    try:
-        rooms[code].configure(config)
-    except InvalidConfigurationError as e:
-        return render_template('configure.html',room=code,config=config,complaint=e.args[0])
+class Game(Carafe):
+    @property
+    def room(self):
+        return rooms[session['room']]
 
-    return redirect(url_for('room', code=code))
+    def render(self):
+        return self.room.render(session['uid'])
 
-# -------------------- JOIN ----------------------
-@nameRoute('/join')
-def join():
-    return render_roompick()
+    def process(self):
+        if self.room.rematch:
+            session['room'] = self.room.rematch
+            return redirect(url_for('room'))
 
-@nameRoute('/join', methods=['POST'])
-def join_choose():
-
-    roomcode = request.form['user_input']
-    if roomcode not in rooms:
-        return render_roompick("That room does not exist.")
-
-    room = rooms[roomcode]
-    if room.full and session['uid'] not in room.assignments:
-        return render_roompick("That room is already full.")
-
-    return redirect(url_for('room', code=roomcode))
-
-@nameRoute('/room/<code>')
-def room(code):
-    if code not in rooms:
-        return error_page(f'room_{code}')
-
-    room = rooms[code]
-    room.try_adding(session['uid'])
-
-    return room.render(session['uid'])
-
-
-@nameRoute('/room/<code>', methods=['POST'])
-def rematch(code):
-    if invalidRoomCode(code) or code not in rooms:
-        return error_page(f'room_{code}')
-
-    oldroom = rooms[code]
-
-    # if someone else has rematched already
-    if oldroom.rematch:
-        return redirect(url_for('room', code=oldroom.rematch))
-
-    newcode = newRoomCode()
-    Room(newcode)  # bind the room globally
-    oldroom.rematch = newcode
-    session['config'] = oldroom.config
-
-    return redirect(url_for('configure_room', code=newcode))
-
+        session['config'] = self.room.config
+        return redirect(url_for('create'))
 
 if __name__ == '__main__':
-    print('starting site...')
-    app.run()
+    Carafe().run()

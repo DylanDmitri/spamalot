@@ -1,0 +1,14 @@
+{% extends "base/default.html" %}
+{% block body %}
+    {% if username != '' %}
+        <p>
+        <form method="GET" action={{ url_for('index') }} >
+            <input style="height:2em" class="standard_alignment" type="submit" value="<- main menu">
+        </form>
+        <p>
+    {% endif %}
+    {% for complaint in complaints %}
+        <p class="error standard_alignment"> {{ complaint }} </p>
+    {% endfor %}
+    {% block content %} {% endblock %}
+{% endblock %}

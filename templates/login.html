@@ -1,6 +1,6 @@
-{% extends "base/default_with_back.html" %}
+{% extends "base/back_button.html" %}
 {% block content %}
-    {{ description }}
+    Choose a display name. This resets between sessions.
 
     <form method="POST">
         <p class="bottom_space">
@@ -9,9 +9,5 @@
 
         <input type="submit" class="standard_alignment" value="Submit">
     </form>
-
-    {% for complaint in complaints %}
-        <p class="error standard_alignment"> {{ complaint }} </p>
-    {% endfor %}
 
 {%  endblock %}

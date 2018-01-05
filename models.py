@@ -1,141 +1,78 @@
-from flask import render_template
-from string import ascii_lowercase
-from random import choice, shuffle
+from flask import render_template, session
+from spam import bidirection, names
+from random import shuffle
 
+def shuffled(i):
+    p = list(i)
+    shuffle(p)
+    return p
 
-class InvalidConfigurationError(Exception):
-    pass
+class Role:
+    generic_good = 'Generic Good'
+    generic_evil = 'Generic Evil'
 
+    good_lancelot = 'Good Lancelot'
+    evil_lancelot = 'Evil Lancelot'
+    merlin = 'Merlin'
+    percival = 'Percival'
+    assassin = 'the Assassin'
+    morganna = 'Morganna'
+    mordred = 'Mordred'
+    oberron = 'Oberron'
 
-rooms = {} # tablecode : room
-
-# to keep track of which usernames are taken
-names = {} # uid : username
-nameset = set()
-
-
-class Roles:
-    Lancelots = 'Lancelots'
-    GoodLancelot = 'Good Lancelot'
-    EvilLancelot = 'Evil Lancelot'
-    GenericGood = 'Generic Good'
-    GenericEvil = 'Generic Evil'
-
-    # bound to the checkboxes in configure.html
-    # careful when changing
-    Merlin = 'Merlin'
-    Percival = 'Percival'
-    Assassin = 'Assassin'
-    Morganna = 'Morganna'
-    Mordred = 'Mordred'
-    Oberron = 'Oberron'
-
-
-EvilGroup = Roles.Assassin, Roles.Morganna, Roles.Mordred, Roles.GenericEvil
-LancelotGroup = Roles.GoodLancelot, Roles.EvilLancelot
-
-MerlinSees = Roles.Assassin, Roles.Morganna, Roles.Oberron, Roles.GenericEvil
-PercivalSees = Roles.Morganna, Roles.Merlin
+every_role = {v for k,v in Role.__dict__.items() if not k.startswith('_')}
+lancelots = {Role.good_lancelot, Role.evil_lancelot}
+good_group = {Role.merlin, Role.percival, Role.generic_good}
+evil_group = every_role - lancelots - good_group
 
 vision_matrix = (
-    ((Roles.Merlin,),   MerlinSees,     'evil'),
-    ((Roles.Percival,), PercivalSees,   'magicians'),
-    (EvilGroup,         EvilGroup,      'evil with you'),
-    (LancelotGroup,     LancelotGroup,  'the other Lancelot'))
+    # these people    know that    those people         are     this
+    ({Role.merlin},              evil_group-{Role.mordred},    'evil'),
+    ({Role.percival},            {Role.merlin, Role.morganna}, 'magical'),
+    (evil_group-{Role.oberron},  evil_group-{Role.oberron},    'evil with you'),
+    (lancelots,                  lancelots,                    'the other Lancelot'))
 
 
 class Room:
-    def __init__(self, code):
-        self.code = code
-        rooms[code] = self
-
-        self.roles = []
-        self.assignments = {}     # uid : role
-        self.reverse_lookup = {}  # role : uid
-
+    def __init__(self):
+        self.config = None
+        self.assignments = bidirection()
         self.rematch = None
 
-    def has(self, s):
-        return self.config[s] == 'checked'
-
-    def configure(self, config):
+    def assign_roles(self, config):
         self.config = config
-
-        if config['Lancelots']:
-            self.roles.append(Roles.GoodLancelot)
-            self.roles.append(Roles.EvilLancelot)
-
-        good = Roles.Merlin, Roles.Percival
-        bad = Roles.Assassin, Roles.Mordred, Roles.Morganna, Roles.Oberron
-
-        for name in good+bad:
-            if self.has(name):
-                self.roles.append(name)
-
-        for special_names, generic_name in ((bad, Roles.GenericEvil),
-                               (good, Roles.GenericGood)):
-
-            if special_names==bad:
-                faction_size = (2,3)[config['numPlayers'] > 6]
-                special_count = sum(self.has(name) for name in special_names)
-                num_generic = faction_size - special_count
-            else:
-                num_generic = config['numPlayers'] - len(self.roles)
-
-            if num_generic < 0:
-                raise InvalidConfigurationError('Too many special roles!!')
-            for _ in range(num_generic):
-                self.roles.append(generic_name)
-
-        if len(self.roles) != config['numPlayers']:
-            raise InvalidConfigurationError('Something went wrong :(')
-
-        self.possibly_make_assignments()
-
-    def render(self, username):
-        return render_template(
-            'room.html',
-            roomcode=self.code,
-            players=str(', '.join(self.shuffled_player_names)),
-            roles=str(', '.join(self.roles)),
-            status=self.status,
-            role_info=self.role_info(username),
-        )
-
-    @property
-    def shuffled_player_names(self):
-        p = list(names[k] for k in self.assignments.keys())
-        shuffle(p)
-        return p
-
-    @property
-    def shuffled_player_uids(self):
-        p = list(self.assignments.keys())
-        shuffle(p)
-        return p
-
-    @property
-    def status(self):
-        return f'{len(self.assignments)}/{len(self.roles)}'
-
-    @property
-    def full(self):
-        return len(self.assignments) == len(self.roles)
-
-    def try_adding(self, uid):
-        self.assignments.setdefault(uid, None)
         self.possibly_make_assignments()
 
     def possibly_make_assignments(self):
-        if self.full and all(r is None for r in self.assignments.values()) and hasattr(self, 'roles'):
-
-            for uid, r in zip(self.shuffled_player_uids, self.roles):
+        if all((self.config, len(self.config.roles)==self.config.num_players,
+                all(self.assignments[uid] is None for uid in self.uids))):
+            for uid, r in zip(shuffled(self.uids), self.config.roles):
                 self.assignments[uid] = r
 
-            self.reverse_lookup = {r:uid for uid,r in self.assignments.items()}
+    @property
+    def players(self):
+        return [names[uid] for uid in self.uids]
+
+    @property
+    def uids(self):
+        return [k for k in self.assignments if len(k)>40]
+
+    def render(self, uid):
+
+        self.assignments.setdefault(uid)
+        self.possibly_make_assignments()
+
+        return render_template(
+            'room.html',
+            roomcode = session['room'],
+            players=', '.join(shuffled(self.players)),
+            roles=', '.join(self.config.roles),
+            status=f'{len(self.assignments)}/{len(self.config.roles)}',
+            role_info=self.role_info(uid),
+        )
 
     def role_info(self, your_uid):
-        your_role = self.assignments.get(your_uid, None)
+        your_role = self.assignments.get(your_uid,None)
         info = []
 
         if your_role is not None:
@@ -145,65 +82,72 @@ class Room:
             if your_role not in group: continue
 
             people = [names[uid] for uid in
-                      (self.reverse_lookup.get(role,None) for role in target)
+                      (self.assignments.get(role,None) for role in target)
                       if uid not in (your_uid,None)]
 
-            if len(people) == 0:
-                continue
+            if people:
+                l = (f'{people[0]} is',
+                     f'{", ".join(people[:-1]) + " and " + people[-1] } are'
+                     )[len(people) > 1]
+                info.append(f'{l} {description}.')
 
-            l = (f'{people[0]} is',
-                 f'{", ".join(people[:-1]) + " and " + people[-1] } are'
-                 )[len(people) > 1]
-
-            info.append(f'{l} {description}.')
-
-        # helpful reminders
-        if your_role is Roles.Merlin and Roles.Mordred in self.roles:
+        if your_role is Role.merlin and Role.mordred in self.config.roles:
             info.append('Mordred remains hidden.')
-        if your_role in EvilGroup and Roles.Oberron in self.roles:
+        if your_role in evil_group and Role.oberron in self.config.roles:
             info.append('Oberron is out there somewhere.')
 
         return info
 
 
-class Configuration:
-    @classmethod
-    def default(cls, numPlayers=7, Merlin=True, Percival=True, Assassin=True,
-                 Morganna=True, Mordred=True, Oberron=False, Lancelots=False):
+class Configuration(dict):
 
-        numPlayers = int(numPlayers)
+    checkboxes = ((Role.merlin, Role.percival),
+                  (Role.assassin, Role.morganna, Role.mordred, Role.oberron),
+                  (Role.good_lancelot, Role.evil_lancelot))
 
-        j = {'numPlayers': numPlayers}
+    def __init__(self, form):
 
+        # needed by html
+        super().__init__(('num_players', form['num_players']))
+
+        # todo :: messy, clean up
         for i in range(5,10):
-            j[f'players{i}'] = ('','selected')[i == numPlayers]
+            self[f'players{i}'] = ('','selected')[i == self['num_players']]
 
-        for role in Roles.Merlin,Roles.Percival,Roles.Assassin,Roles.Morganna,Roles.Mordred,Roles.Oberron,Roles.Lancelots:
-            j[role] = ('','checked')[bool(eval(role))]
+        self.update({
+            ('', 'checked')[role in form]
+            for g in self.checkboxes for role in g})
 
-        return j
+        # roles directly from checkboxes
+        self.complaints = []
+        self.roles = [role for g in self.checkboxes for role in g if self[role]]
+
+        # add in the generics
+        size = {'evil':(2,3)[self['num_players'] > 6]}
+        size['good'] = self['num_players'] - size['evil']
+
+        for name, size, group, role in (('evil', evil_group, Role.generic_evil),
+                                        ('good', good_group, Role.generic_good)):
+
+            special = sum(n in self.roles for n in group)
+            generic = size[name] - special
+
+            if generic < 0:
+                self.complaints.append(f'Too many {name} roles')
+
+            for _ in range(generic):
+                self.roles.append(role)
 
     @classmethod
-    def build(cls, form):
-        return Configuration.default(
-            form['num_players'],
-            Merlin = Roles.Merlin in form,
-            Percival = Roles.Percival in form,
-            Assassin = Roles.Assassin in form,
-            Morganna = Roles.Morganna in form,
-            Mordred = Roles.Mordred in form,
-            Oberron = Roles.Oberron in form,
-            Lancelots = Roles.Lancelots in form,
-        )
-
-def invalidRoomCode(code):
-    return any((
-        type(code) != str,
-        len(code) != 4,
-        any(l not in ascii_lowercase for l in code)))
-
-def newRoomCode():
-    while True:
-        tentative = ''.join(choice(ascii_lowercase) for _ in range(4))
-        if rooms.get(tentative) is None:
-            return tentative
+    def default(cls):
+        return Configuration({
+            'num_players' : 7,
+            Role.merlin : True,
+            Role.percival : True,
+            Role.assassin : True,
+            Role.morganna : True,
+            Role.mordred : True,
+            Role.oberron : False,
+            Role.evil_lancelot : False,
+            Role.good_lancelot : False,
+        })

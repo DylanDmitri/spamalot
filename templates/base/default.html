@@ -1,38 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Spamalot Inc</title>
-    <style>
-        body            { font-family: sans-serif; background: #fafafa; font-size:21pt}
-        form            { border-left-width: 2em; }
-        input           { color:#000000;background-color:#e0e0e0;}
-
-        .standard_alignment {width:100%; max-width:20em}
-
-        input[type=submit] { height:4em; font-size:32pt; border-radius:8px; }
-        input[type=text] { height:2.5em; width:80%; align-content:center; font-size:21pt;
-                            background-color: #f0f0f0; border:black}
-
-        .page           { margin: 2em auto; width: 35em; border: 5px solid #ccc;
-                          padding: 0.8em; background: white; }
-        .bottom_space   { margin-bottom: 20px; }
-        .entries        { list-style: none; margin: 0; padding: 0; }
-        .entries li     { margin: 0.8em 1.2em; }
-        .entries li h2  { margin-left: -1em; }
-        .add-entry      { font-size: 0.9em; border-bottom: 1px solid #ccc; }
-        .add-entry dl   { font-weight: bold; }
-        .metanav        { text-align: right; font-size: 0.8em; padding: 0.3em;
-                          margin-bottom: 1em; background: #fafafa; }
-        .flash          { background: #cee5F5; padding: 0.5em;
-                          border: 1px solid #aacbe2; }
-        .error          { background: #f0d6d6; padding: 0.5em; color: #cc060d }
-
-    </style>
-
-</head>
-<body>
-{% block body %}{% endblock %}
-</body>
+    <head>
+        <meta charset="UTF-8">
+        <title>
+            Spamalot Inc
+        </title>
+        <style>
+            body { font-family:sans-serif; background:#fafafa; font-size:21pt; }
+            input { color:#000000; background-color:#e0e0e0; }
+            input[type=submit] { height:4em; font-size:28pt; border-radius:8px; }
+            input[type=text] { height:2.5em; width:80%; align-content:center; font-size:21pt;
+                                background-color: #f0f0f0; border:black}
+            select {
+                background-color:#3498DB;
+                width:100%; max-width:20em; height:2.5em;
+                font-size:24pt; font-weight:bold; color:#fff; text-align:center;
+                border:0; outline:0;
+            }
+            .standard_alignment {width:100%; max-width:20em}
+            .error { width:90%; background: #f0d6d6; padding: 0.5em; color:#cc060d; border-radius:8px }
+        </style>
+    </head>
+    <body>
+        {% block body %}{% endblock %}
+    </body>
 </html>
-

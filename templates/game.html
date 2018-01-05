@@ -1,4 +1,4 @@
-{% extends "base/default_with_back.html" %}
+{% extends "base/back_button.html" %}
 {% block content %}
 
     <h2>in room "{{ roomcode }}"</h2>
@@ -14,7 +14,7 @@
         <form method="GET" action={{ url_for('room', code=roomcode) }}>
             <input style="height:4em;width:6.5em" type="submit" value="Refresh">
         </form>
-    </p>
+    <p>
     {% endif %}
     <h3> Players ({{ status }}): </h3> {{ players }}
     <h3> Roles: </h3> {{ roles }}
