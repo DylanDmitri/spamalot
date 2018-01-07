@@ -181,11 +181,13 @@ class ComplaintException(Exception):
     pass
 
 class Carafe:
+
     app = Flask(__name__)
     pages = []
     @staticmethod
     def run():
         [p() for p in Carafe.pages]
+        globals()['app'] = Carafe.app
         Carafe.app.secret_key = get_secret()
         Carafe.app.run()
 
