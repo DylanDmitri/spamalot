@@ -187,7 +187,6 @@ class Carafe:
     @staticmethod
     def run():
         [p() for p in Carafe.pages]
-        globals()['app'] = Carafe.app
         Carafe.app.secret_key = get_secret()
         Carafe.app.run()
 
@@ -305,4 +304,5 @@ class Game(Carafe):
 
 # and run the darned thing
 if __name__ == '__main__':
+    app = Carafe.app
     Carafe().run()
