@@ -3,28 +3,29 @@
 
     <h2>in room "{{ roomcode }}"</h2>
 
-    {% if role_info|length > 0%}
+    {% if doing_config %}
+        <h4>{{ doing_config }} is currently configuring this room.</h4>
+    {% else %}
+        <h3> Players ({{ status }}): </h3> {{ players }}
+        <h3> Roles: </h3> {{ roles }}
+    {% endif %}
+
+    {% if role_info|length == 0 %}
+        <p>
+        <form method="GET" action={{ url_for('game') }}>
+            <input style="height:4em;width:6.5em" type="submit" value="Refresh">
+        </form>
+        <p>
+    {% else %}
         <h3>Role Info:</h3>
         {% for message in role_info %}
             {{ message }}
             <br>
         {% endfor %}
-    {% else %}
-    <p>
-        <form method="GET" action={{ url_for('room', code=roomcode) }}>
-            <input style="height:4em;width:6.5em" type="submit" value="Refresh">
+        <p>
+        <form method="POST">
+            <input style="height:3.5em;width:5.5em" type="submit" value="Rematch">
         </form>
-    <p>
-    {% endif %}
-    <h3> Players ({{ status }}): </h3> {{ players }}
-    <h3> Roles: </h3> {{ roles }}
-
-    {% if role_info|length > 0%}
-    <h3> </h3>
-    <form method="POST">
-        <input type="submit" value="Rematch">
-    </form>
-
     {% endif %}
 
 {%  endblock %}

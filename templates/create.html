@@ -1,7 +1,7 @@
 {% extends "base/back_button.html" %}
 {% block content %}
 
-    <h2> room: "{{ room  }}"</h2>
+    <h2> room: "{{ room }}"</h2>
 
     {% if complaint %}
         <p class="error standard_alignment"> {{ complaint }} Please try again. </p>
@@ -10,33 +10,21 @@
     <form method="POST">
 
         <select name="num_players" >
-            <option value="5"  {{ config.players5  }}> 5 players</option>
-            <option value="6"  {{ config.players6  }}> 6 players</option>
-            <option value="7"  {{ config.players7  }}> 7 players</option>
-            <option value="8"  {{ config.players8  }}> 8 players</option>
-            <option value="9"  {{ config.players9  }}> 9 players</option>
-            <option value="10" {{ config.players10 }}> 10 players</option>
+            {% for i in range(5,10) %}
+                <option value="{{ i }}" {%if num_players==i%}selected="selected"{% endif %}>
+                    {{ i }} players</option>
+            {% endfor %}
         </select>
 
-        {% for %}
-        <p>
-        <input type="checkbox" name="Merlin" {{ config.Merlin }} > Merlin
-        <br>
-        <input type="checkbox" name="Percival" {{ config.Percival }} > Percival
-
-        <p>
-        <input type="checkbox" name="Assassin" {{ config.Assassin }} > Assassin
-        <br>
-        <input type="checkbox" name="Morganna" {{ config.Morganna }} > Morganna
-        <br>
-        <input type="checkbox" name="Mordred" {{ config.Mordred }} > Mordred
-        <br>
-        <input type="checkbox" name="Oberron" {{ config.Oberron }} > Oberron
-        <br>
-
-        <p>
-        <input type="checkbox" name="Lancelots" {{ config.Lancelots }} > Lancelots
-        <br>
+        {% for group in checkboxes %}
+            <br>
+            {% for role in group %}
+                <br>
+                <label class="checkbox">
+                        <input type="checkbox" name="{{ role }}" {% if selected[role]==True %} checked="checked" {% endif %}> {{ role }}
+                </label>
+            {% endfor %}
+        {% endfor %}
 
         <p>
         <input type="submit" class="standard_alignment" value="Make Room">

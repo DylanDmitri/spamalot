@@ -1,12 +1,10 @@
 {% extends "base/back_button.html" %}
 {% block content %}
-    Choose a display name. This resets between sessions.
+    Choose a display name. Pick something reasonable, so your group can identify you without having to ask.
 
     <form method="POST">
-        <p class="bottom_space">
-            <input type=text name=user_input placeholder="username">
-        </p>
-
+        <input type=text name=user_input placeholder="username">
+        <p>
         <input type="submit" class="standard_alignment" value="Submit">
     </form>
 

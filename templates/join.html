@@ -1,12 +1,10 @@
 {% extends "base/back_button.html" %}
 {% block content %}
-    Choose a room to join, or pick from those below.
+    Input a four letter roomcode. Capitalization doesn't matter.
 
     <form method="POST">
-        <p class="bottom_space">
-            <input type=text name=user_input placeholder="abcd">
-        </p>
-
+        <input type=text name=user_input placeholder="abcd">
+        <p>
         <input type="submit" class="standard_alignment" value="Submit">
     </form>
 
