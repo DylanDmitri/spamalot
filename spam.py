@@ -180,23 +180,25 @@ def Configuration(form):
 class ComplaintException(Exception):
     pass
 
+
+app = Flask(__name__)
+
 class Carafe:
 
-    app = Flask(__name__)
     pages = []
     @staticmethod
     def run():
         [p() for p in Carafe.pages]
-        Carafe.app.secret_key = get_secret()
-        Carafe.app.run()
+        app.secret_key = get_secret()
+        app.run()
 
     def __init__(self):
         self.name = self.__class__.__name__.lower()
         self.path = (f'/{self.name}/', '/')[self.name == 'index']
         self.template = f'{self.name}.html'
 
-        Carafe.app.add_url_rule(self.path, self.name, self._render)
-        Carafe.app.add_url_rule(self.path, self.name+'_post', self.form, methods=['POST'])
+        app.add_url_rule(self.path, self.name, self._render)
+        app.add_url_rule(self.path, self.name+'_post', self.form, methods=['POST'])
 
         self.complaints = []
 
@@ -304,5 +306,4 @@ class Game(Carafe):
 
 # and run the darned thing
 if __name__ == '__main__':
-    app = Carafe.app
     Carafe().run()
