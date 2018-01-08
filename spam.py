@@ -190,7 +190,7 @@ class Carafe:
         self.path = (f'/{self.name}/', '/')[self.name == 'index']
         self.template = f'{self.name}.html'
 
-        app.add_url_rule(self.path, self.name+'_g', self._render, methods=['GET'])
+        app.add_url_rule(self.path, self.name, self._render, methods=['GET'])
         app.add_url_rule(self.path, self.name+'_p', self.form,    methods=['POST'])
 
         self.complaints = []
