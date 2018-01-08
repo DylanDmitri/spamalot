@@ -77,7 +77,7 @@ def login_choose():
 
     complaints = [message for condition, message in (
                   (newname in nameset, 'Username is already taken.'),
-                  (',' in newname, 'No commas in username'),
+                  (set(newname) <= set(ascii_lowercase + " "), 'No special characters.'),
                   (len(newname)<3, 'Username is too short'))
                   if condition]
     if complaints:
