@@ -115,7 +115,7 @@ class Room:
             role_info=self.role_info(uid),
         )
 
-    def role_info(self,your_uid):
+    def role_info(self, your_uid):
         your_role = self.assignments.get(your_uid,None)
         info = []
 
@@ -182,28 +182,21 @@ class ComplaintException(Exception):
 
 
 app = Flask(__name__)
+app.secret_key = get_secret()
 
 class Carafe:
-
-    pages = []
-    @staticmethod
-    def run():
-        [p() for p in Carafe.pages]
-        app.secret_key = get_secret()
-        app.run()
-
     def __init__(self):
         self.name = self.__class__.__name__.lower()
         self.path = (f'/{self.name}/', '/')[self.name == 'index']
         self.template = f'{self.name}.html'
 
-        app.add_url_rule(self.path, self.name, self._render)
-        app.add_url_rule(self.path, self.name+'_post', self.form, methods=['POST'])
+        app.add_url_rule(self.path, self.name+'_g', self._render, methods=['GET'])
+        app.add_url_rule(self.path, self.name+'_p', self.form,    methods=['POST'])
 
         self.complaints = []
 
     def __init_subclass__(cls, **kwargs):
-        Carafe.pages.append(cls)
+        cls()  # beaned lmao
 
     def _render(self):
         if 'uid' not in session:
@@ -303,7 +296,6 @@ class Game(Carafe):
 
         return redirect(url_for('game'))
 
-
 # and run the darned thing
 if __name__ == '__main__':
-    Carafe().run()
+    app.run()
