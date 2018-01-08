@@ -191,7 +191,7 @@ class Carafe:
         self.template = f'{self.name}.html'
 
         app.add_url_rule(self.path, self.name, self._render, methods=['GET'])
-        app.add_url_rule(self.path, self.name+'_p', self.form,    methods=['POST'])
+        app.add_url_rule(self.path, self.name+'_p', self.form, methods=['POST'])
 
         self.complaints = []
 
@@ -245,9 +245,13 @@ class Login(Carafe):
     def process(self, form):
         newname = form['user_input']
 
+        print(set(newname))
+        print(set(ascii_letters + ' '))
+
+
         self.complain([message for condition, message in (
                   (newname in names, 'Username is already taken.'),
-                  (',' in newname, 'No commas in username'),
+                  (not (set(newname) < set(ascii_letters + " ")),'No special characters.'),
                   (len(newname)<3, 'Username is too short'),
                   (len(newname)>30,'Username is too long'))
                   if condition])
