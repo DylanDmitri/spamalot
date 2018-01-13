@@ -31,4 +31,4 @@ spam.session = backup
 spam.names['bRrHUmsqwkMyfBcuizpbGDasIOSDgoIWQDUWvBVVhnMJyoJDvl'] = 'Chrome'
 spam.names['BVRTPwTOfXKsoGSWgpwbSNwjeMXoQklPBpghHpBdfcPIlMJYzK'] = 'Firefox'
 
-spam.Carafe().run()
+spam.app.run()

@@ -13,7 +13,7 @@ class Role:
     merlin = 'Merlin'
     percival = 'Percival'
     assassin = 'the Assassin'
-    morganna = 'Morganna'
+    morganna = 'Morgana'
     mordred = 'Mordred'
     oberron = 'Oberron'
 
@@ -245,14 +245,10 @@ class Login(Carafe):
     def process(self, form):
         newname = form['user_input']
 
-        print(set(newname))
-        print(set(ascii_letters + ' '))
-
-
         self.complain([message for condition, message in (
                   (newname in names, 'Username is already taken.'),
                   (not (set(newname) < set(ascii_letters + " ")),'No special characters.'),
-                  (len(newname)<3, 'Username is too short'),
+                  (len(newname)<2, 'Username is too short'),
                   (len(newname)>30,'Username is too long'))
                   if condition])
 
@@ -279,7 +275,7 @@ class Create(Carafe):
 
 class Join(Carafe):
     def process(self, form):
-        session['room'] = form['user_input'].lower()
+        session['room'] = form['user_input'].strip().lower()
         target = rooms.get(session['room'])
 
         if target is None:
