@@ -1,13 +1,13 @@
 {% extends "base/back_button.html" %}
 {% block content %}
 
+    <h2>in room "{{ roomcode }}"</h2>
+
     {% if role_info|length != 0 %}
         <form method="POST">
             <input style="height:3.5em;width:5.5em" type="submit" value="Rematch">
         </form>
     {% endif %}
-
-    <h2>in room "{{ roomcode }}"</h2>
 
     {% if doing_config %}
         <h4>{{ doing_config }} is currently configuring this room.</h4>
@@ -22,6 +22,12 @@
             <input style="height:4em;width:6.5em" type="submit" value="Refresh">
         </form>
         <p>
+    {% else %}
+        <h3>Role Info:</h3>
+        {% for message in role_info %}
+            {{ message }}
+            <br>
+        {% endfor %}
     {% endif %}
 
 {%  endblock %}

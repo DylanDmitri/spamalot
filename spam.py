@@ -243,7 +243,7 @@ class Index(Carafe):
 
 class Login(Carafe):
     def process(self, form):
-        newname = form['user_input']
+        newname = form['user_input'].strip()
 
         self.complain([message for condition, message in (
                   (newname in names, 'Username is already taken.'),
@@ -275,7 +275,7 @@ class Create(Carafe):
 
 class Join(Carafe):
     def process(self, form):
-        session['room'] = form['user_input'].strip().lower()
+        session['room'] = ''.join(c for c in form['user_input'] if c in ascii_letters).lower()
         target = rooms.get(session['room'])
 
         if target is None:
