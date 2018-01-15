@@ -11,7 +11,7 @@
 <form method="POST" class="mb-3">
   <div class="form-group">
     <select name="num_players" class="form-control">
-      {% for i in range(5,10) %}
+      {% for i in range(5, 13) %}
         <option value="{{ i }}" {%if num_players==i%}selected="selected"{% endif %}>
           {{ i }} players
         </option>

@@ -17,8 +17,8 @@ class Role:
     assassin = 'the Assassin'
     morganna = 'Morgana'
     mordred = 'Mordred'
-    oberron = 'Oberron'
-
+    oberron = 'Oberon'
+`   
 EVERY_ROLE = {v for k,v in Role.__dict__.items() if not k.startswith('_')}
 LANCELOTS = {Role.good_lancelot,Role.evil_lancelot}
 GOOD_GROUP = {Role.merlin,Role.percival,Role.generic_good}
@@ -27,7 +27,7 @@ EVIL_GROUP = EVERY_ROLE - LANCELOTS - GOOD_GROUP
 VISION_MATRIX = (
     # these people    know that    those people       are        this
     ({Role.merlin},                EVIL_GROUP - {Role.mordred},  'evil as shit'),
-    ({Role.percival},              {Role.merlin, Role.morganna}, 'Merlin or Morganna'),
+    ({Role.percival},              {Role.merlin, Role.morganna}, 'Merlin or Morgana'),
     (EVIL_GROUP - {Role.oberron},  EVIL_GROUP - {Role.oberron},  'also evil as shit'),
     (LANCELOTS,                    LANCELOTS,                    'the other Lancelot'))
 
