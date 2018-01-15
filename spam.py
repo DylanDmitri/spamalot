@@ -18,7 +18,7 @@ class Role:
     morganna = 'Morgana'
     mordred = 'Mordred'
     oberron = 'Oberon'
-`   
+
 EVERY_ROLE = {v for k,v in Role.__dict__.items() if not k.startswith('_')}
 LANCELOTS = {Role.good_lancelot,Role.evil_lancelot}
 GOOD_GROUP = {Role.merlin,Role.percival,Role.generic_good}
