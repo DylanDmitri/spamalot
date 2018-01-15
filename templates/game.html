@@ -2,6 +2,16 @@
 {% block content %}
 
   <h2>Room <small>{{ roomcode }}</small></h2>
+  {% if role_info|length != 0 %}
+  <div class="row mt-2">
+    <div class="col mb-2">
+      <form method="POST">
+        <a href="/" class="btn btn-secondary float-right ml-2">Leave room</a>
+        <input type="submit" class="btn btn-primary float-right" value="Rematch">
+      </form>
+    </div>
+  </div>
+  {% endif %}
 
   {% if doing_config %}
     <p><b>{{ doing_config }}</b> is currently configuring this room.</p>
@@ -50,15 +60,5 @@
     </div>
   {% endif %}
 
-  {% if role_info|length != 0 %}
-  <div class="row mt-2">
-    <div class="col mb-2">
-      <form method="POST">
-        <a href="/" class="btn btn-secondary float-right ml-2">Leave room</a>
-        <input type="submit" class="btn btn-primary float-right" value="Rematch">
-      </form>
-    </div>
-  </div>
-  {% endif %}
 
 {%  endblock %}
