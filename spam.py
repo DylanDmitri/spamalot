@@ -164,7 +164,7 @@ def Configuration(form):
     size = {'evil':2}
     if conf['num_players'] >= 7:
         size['evil'] = 3
-    elif conf['num_players'] >= 10:
+    if conf['num_players'] >= 10:
         size['evil'] = 4
 
     size['good'] = conf['num_players'] - size['evil']
