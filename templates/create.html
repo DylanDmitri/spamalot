@@ -2,7 +2,7 @@
 {% block content %}
 
 <h2>Create Room</h2>
-<p>Room Code: {{ room }}</p>
+<p>Room Code: {{ roomcode }}</p>
 
 <!-- {% if complaint %}
   <div class="alert alert-danger"> {{ complaint }} Please try again. </div>
@@ -41,11 +41,14 @@
     </div>
   {% endfor %}
 
-  <input type="submit" class="btn btn-primary" value="Make Room">
-  <a href="/" class="btn btn-secondary">Cancel</a>
+  <div>
+      <input type="submit" class="btn btn-primary" value="Make Room">
+      <a href="/" class="btn btn-secondary">Cancel</a>
+  </div>
+
 </form>
 
-<p class="mb-2">Room Code: {{ room }}</p>
+
 
 
 {%  endblock %}

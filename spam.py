@@ -3,7 +3,7 @@ from random import choice, shuffle
 from string import ascii_letters
 import os
 
-WORDS = ["time", "year", "people", "way", "day", "man", "thing", "woman", "life", "child", "world", "school", "state", "family", "student", "group", "country", "problem", "hand", "part", "place", "case", "week", "company", "system", "program", "question", "work", "government", "number", "night", "point", "home", "water", "room", "mother", "area", "money", "story", "fact", "month", "lot", "right", "study", "book", "eye", "job", "word", "business", "issue", "side", "kind", "head", "house", "service", "friend", "father", "power", "hour", "game", "line", "end", "member", "law", "car", "city", "community", "name", "president", "team", "minute", "idea", "kid", "body", "information", "back", "parent", "face", "others", "level", "office", "door", "health", "person", "art", "war", "history", "party", "result", "change", "morning", "reason", "research", "girl", "guy", "moment", "air", "teacher", "force", "education"]
+WORDS = ["time", "year", "people", "way", "day", "man", "thing", "woman", "life", "child", "world", "school", "state", "family", "student", "group", "country", "problem", "hand", "part", "place", "case", "week", "company", "system", "program", "question", "work", "number", "night", "point", "home", "water", "room", "mother", "area", "money", "story", "fact", "month", "lot", "right", "study", "book", "eye", "job", "word", "business", "issue", "side", "kind", "head", "house", "service", "friend", "father", "power", "hour", "game", "line", "end", "member", "law", "car", "city", "community", "name", "president", "team", "minute", "idea", "kid", "body", "back", "parent", "face", "others", "level", "office", "door", "health", "person", "art", "war", "history", "party", "result", "change", "morning", "reason", "research", "girl", "guy", "moment", "air", "teacher", "force"]
 
 # --- globals ---
 class Role:
@@ -212,6 +212,8 @@ class Carafe:
         if (session['uid'] not in names) and (self.name != 'login'):
             return redirect(url_for('login'))
 
+        session['fromc'] = False
+
         return self.render()
 
     def render(self):
@@ -236,7 +238,7 @@ class Carafe:
         return {**(self.context() or {}),
                 'complaints':self.complaints,
                 'username':names.get(session['uid'], ''),
-                'room':session.get('room', '-')}
+                'roomcode':session.get('room', '-')}
 
     def context(self):
         return None
@@ -245,20 +247,17 @@ class Carafe:
 
 # --------- the pages themselves ----------
 class Index(Carafe):
-    def context(self):
-        session['room'] = None
+    pass
 
 class Login(Carafe):
     def process(self, form):
         newname = form['user_input'].strip()
 
-
         self.complain([message for condition, message in (
                   (newname in names and newname!=names.get(session['uid'], None), 'Username is already taken.'),
                   (not (set(newname) < set(ascii_letters + " ")),'No special characters.'),
                   (len(newname)<2, 'Username is too short'),
-                  (len(newname)>30,'Username is too long'),
-                  (newname.replace('I', 'l') in names or newname.replace('l', 'I') is names, 'ROSEBAUGH STOP IT'))
+                  (len(newname)>30,'Username is too long'))
                   if condition])
 
         names[session['uid']] = newname
@@ -266,11 +265,11 @@ class Login(Carafe):
 
 class Create(Carafe):
     def context(self):
-        if session.get('room') is None:
+        if not session['fromc']:
             session['room'] = newRoomCode()
 
         rooms[session['room']] = Room()
-
+        session['fromc'] = True
         return session.get('config', Configuration(DEFAULT_FORM))
 
     def process(self, form):
