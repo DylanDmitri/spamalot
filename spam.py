@@ -230,7 +230,7 @@ class Carafe:
     def _context(self):
         return {**(self.context() or {}),
                 'complaints':self.complaints,
-                'username':names.get(session['uid'], '-'),
+                'username':names.get(session['uid'], ''),
                 'room':session.get('room', '-')}
 
     def context(self):
@@ -248,7 +248,7 @@ class Login(Carafe):
         newname = form['user_input'].strip()
 
         self.complain([message for condition, message in (
-                  (newname in names, 'Username is already taken.'),
+                  (newname in names and newname!=names[session['uid']], 'Username is already taken.'),
                   (not (set(newname) < set(ascii_letters + " ")),'No special characters.'),
                   (len(newname)<2, 'Username is too short'),
                   (len(newname)>30,'Username is too long'))
