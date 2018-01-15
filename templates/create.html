@@ -1,33 +1,51 @@
 {% extends "base/back_button.html" %}
 {% block content %}
 
-    <h2> room: "{{ room }}"</h2>
+<h2>Create Room</h2>
+<p>Room Code: {{ room }}</p>
 
-    {% if complaint %}
-        <p class="error standard_alignment"> {{ complaint }} Please try again. </p>
-    {% endif %}
+<!-- {% if complaint %}
+  <div class="alert alert-danger"> {{ complaint }} Please try again. </div>
+{% endif %} -->
 
-    <form method="POST">
+<form method="POST" class="mb-3">
+  <div class="form-group">
+    <select name="num_players" class="form-control">
+      {% for i in range(5,10) %}
+        <option value="{{ i }}" {%if num_players==i%}selected="selected"{% endif %}>
+          {{ i }} players
+        </option>
+      {% endfor %}
+    </select>
+  </div>
 
-        <select name="num_players" >
-            {% for i in range(5,10) %}
-                <option value="{{ i }}" {%if num_players==i%}selected="selected"{% endif %}>
-                    {{ i }} players</option>
-            {% endfor %}
-        </select>
+  {% for group in checkboxes %}
+    <div class="form-group">
+      <label>
+        {% if loop.first %}
+          <b>Good</b>
+        {% endif %}
+        {% if (loop.index == 2) %}
+          <b>Evil</b>
+        {% endif %}
+        {% if (loop.index == 3) %}
+          <b>Neutral</b>
+        {% endif %}
+      </label>
+      {% for role in group %}
+        <div class="form-check">
+          <input type="checkbox" class="form-check-input" id="{{ role }}" name="{{ role }}" {% if selected[role]==True %} checked="checked" {% endif %}> 
+          <label for="{{ role }}" class="form-check-label">{{ role }}</label>
+        </div>
+      {% endfor %}
+    </div>
+  {% endfor %}
 
-        {% for group in checkboxes %}
-            <br>
-            {% for role in group %}
-                <br>
-                <label class="checkbox">
-                        <input type="checkbox" name="{{ role }}" {% if selected[role]==True %} checked="checked" {% endif %}> {{ role }}
-                </label>
-            {% endfor %}
-        {% endfor %}
+  <input type="submit" class="btn btn-primary" value="Make Room">
+  <a href="/" class="btn btn-secondary">Cancel</a>
+</form>
 
-        <p>
-        <input type="submit" class="standard_alignment" value="Make Room">
-    </form>
+<p class="mb-2">Room Code: {{ room }}</p>
+
 
 {%  endblock %}

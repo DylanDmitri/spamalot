@@ -23,7 +23,7 @@ spam.names['tester'] = 'tester'
 r = spam.Room()
 r.configure(spam.Configuration(spam.DEFAULT_FORM))
 spam.rooms['test'] = r
-for _ in range(5):
+for _ in range(6):
     FakePerson().join(r)
 spam.session = backup
 
@@ -31,4 +31,4 @@ spam.session = backup
 spam.names['bRrHUmsqwkMyfBcuizpbGDasIOSDgoIWQDUWvBVVhnMJyoJDvl'] = 'Chrome'
 spam.names['BVRTPwTOfXKsoGSWgpwbSNwjeMXoQklPBpghHpBdfcPIlMJYzK'] = 'Firefox'
 
-spam.app.run()
+spam.app.run(debug=True)
