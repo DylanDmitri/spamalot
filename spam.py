@@ -3,13 +3,15 @@ from random import choice, shuffle
 from string import ascii_letters
 import os
 
+WORDS = ["time", "year", "people", "way", "day", "man", "thing", "woman", "life", "child", "world", "school", "state", "family", "student", "group", "country", "problem", "hand", "part", "place", "case", "week", "company", "system", "program", "question", "work", "government", "number", "night", "point", "home", "water", "room", "mother", "area", "money", "story", "fact", "month", "lot", "right", "study", "book", "eye", "job", "word", "business", "issue", "side", "kind", "head", "house", "service", "friend", "father", "power", "hour", "game", "line", "end", "member", "law", "car", "city", "community", "name", "president", "team", "minute", "idea", "kid", "body", "information", "back", "parent", "face", "others", "level", "office", "door", "health", "person", "art", "war", "history", "party", "result", "change", "morning", "reason", "research", "girl", "guy", "moment", "air", "teacher", "force", "education"]
+
 # --- globals ---
 class Role:
-    generic_good = 'Generic Good'
-    generic_evil = 'Generic Evil'
+    generic_good = 'Generic good'
+    generic_evil = 'Generic evil'
 
-    good_lancelot = 'Good Lancelot'
-    evil_lancelot = 'Evil Lancelot'
+    good_lancelot = 'Good lancelot'
+    evil_lancelot = 'Evil lancelot'
     merlin = 'Merlin'
     percival = 'Percival'
     assassin = 'the Assassin'
@@ -24,9 +26,9 @@ EVIL_GROUP = EVERY_ROLE - LANCELOTS - GOOD_GROUP
 
 VISION_MATRIX = (
     # these people    know that    those people       are        this
-    ({Role.merlin},                EVIL_GROUP - {Role.mordred},  'evil'),
-    ({Role.percival},              {Role.merlin, Role.morganna}, 'magical'),
-    (EVIL_GROUP - {Role.oberron},  EVIL_GROUP - {Role.oberron},  'evil with you'),
+    ({Role.merlin},                EVIL_GROUP - {Role.mordred},  'evil as shit'),
+    ({Role.percival},              {Role.merlin, Role.morganna}, 'Merlin or Morganna'),
+    (EVIL_GROUP - {Role.oberron},  EVIL_GROUP - {Role.oberron},  'also evil as shit'),
     (LANCELOTS,                    LANCELOTS,                    'the other Lancelot'))
 
 DEFAULT_FORM = {'num_players':7, Role.merlin:True, Role.percival:True,
@@ -42,7 +44,7 @@ def random_string(length):
 
 def newRoomCode():
     for _ in range(50):
-        tentative = random_string(4).lower()
+        tentative = choice(WORDS)
         if rooms.get(tentative) is None:
             return tentative
 
@@ -109,7 +111,7 @@ class Room:
             'game.html',
             roomcode=session['room'],
             doing_config=self.doing_config,
-            players=', '.join(shuffled(self.players)),
+            players=shuffled(self.players),
             roles=', '.join(self.config['roles']),
             status=f'{len(self.players)}/{self.config["num_players"]}',
             role_info=self.role_info(uid),
@@ -120,7 +122,7 @@ class Room:
         info = []
 
         if your_role is not None:
-            info.append(f'You are {your_role}.')
+            info.append(f'{your_role}')
 
         for group,target,description in VISION_MATRIX:
             if your_role not in group: continue
@@ -298,4 +300,4 @@ class Game(Carafe):
 
 # and run the darned thing
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)

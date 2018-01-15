@@ -1,33 +1,64 @@
 {% extends "base/back_button.html" %}
 {% block content %}
 
-    <h2>in room "{{ roomcode }}"</h2>
+  <h2>Room <small>{{ roomcode }}</small></h2>
 
-    {% if role_info|length != 0 %}
-        <form method="POST">
-            <input style="height:3.5em;width:5.5em" type="submit" value="Rematch">
-        </form>
-    {% endif %}
-
-    {% if doing_config %}
-        <h4>{{ doing_config }} is currently configuring this room.</h4>
-    {% else %}
-        <h3> Players ({{ status }}): </h3> {{ players }}
-        <h3> Roles: </h3> {{ roles }}
-    {% endif %}
-
+  {% if doing_config %}
+    <p><b>{{ doing_config }}</b> is currently configuring this room.</p>
+  {% else %}
     {% if role_info|length == 0 %}
-        <p>
-        <form method="GET" action={{ url_for('game') }}>
-            <input style="height:4em;width:6.5em" type="submit" value="Refresh">
-        </form>
-        <p>
-    {% else %}
-        <h3>Role Info:</h3>
-        {% for message in role_info %}
-            {{ message }}
-            <br>
-        {% endfor %}
+      <p>Waiting for additional players. Invite them with code "{{ roomcode }}"</p>
     {% endif %}
+    <h5> Players <small>{{ status }}</small> </h5>
+    <ul>
+      {% for plr in players %}
+        <li>
+          {{ plr }}
+        </li>
+      {% endfor %}
+    </ul>
+    <h5> Configured roles </h5> {{ roles }}
+  {% endif %}
+
+  {% if role_info|length == 0 %}
+    <div class="row mt-4">
+      <div class="col">
+        <!-- Before everyone has joined -->
+        <a href="/game" class="btn btn-primary">Refresh</a>
+        <a href="/join" class="btn btn-secondary">Cancel</a>
+        <script>
+          console.log("Refreshing hack soon");
+          setTimeout(function() {
+            location.reload();
+          }, 5000);
+        </script>
+      </div>
+    </div>
+  {% else %}
+    <div class="row mt-2">
+      <div class="col mb-2">
+        <h5>Your role</h5>
+        {% for message in role_info %}
+          {% if loop.first %}
+            You are <b>{{ message }}</b>.
+          {% else %}
+            {{ message }}
+          {% endif %}
+          <br>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+  {% if role_info|length != 0 %}
+  <div class="row mt-2">
+    <div class="col mb-2">
+      <form method="POST">
+        <a href="/" class="btn btn-secondary float-right ml-2">Leave room</a>
+        <input type="submit" class="btn btn-primary float-right" value="Rematch">
+      </form>
+    </div>
+  </div>
+  {% endif %}
 
 {%  endblock %}

@@ -1,23 +1,10 @@
 {% extends "base/default.html" %}
 {% block body %}
-    <h2 class="standard_alignment">
-        Hi there {{ username }}!!
-    </h2>
-    <p>
-        <form method="GET" action={{ url_for('login') }}>
-            <input type="submit" class="standard_alignment" value="Change Username" style="background-color: #D3D3FA">
-        </form>
-    </p>
-    <p>
-    <form method="GET" action={{ url_for('create') }}>
-        <input type="submit" class="standard_alignment" value="Make New Room" style="background-color: #D3FAD3">
-    </form>
-    </p>
-    <p>
-        <form method="GET" action={{ url_for('join') }}>
-            <input type="submit" class="standard_alignment" value="Join Existing Room" style="background-color: #FAD3D3">
-        </form>
-    </p>
-
+<h2 class="standard_alignment">
+    Hi there {{ username }}!
+</h2>
+<p>Welcome to spamalot!</p>
+<a href="/join" class="btn btn-primary btn-lg btn-block">Join Existing Room</a>
+<a href="/create" class="btn btn-secondary btn-lg btn-block">Host Room</a>
+<a href="/login" class="btn btn-secondary btn-lg btn-block">Change Username</a>
 {%  endblock %}
-

@@ -1,11 +1,24 @@
 {% extends "base/back_button.html" %}
 {% block content %}
-    Choose a display name. Pick something reasonable, so your group can identify you without having to ask.
-
-    <form method="POST">
-        <input type=text name=user_input placeholder="username">
-        <p>
-        <input type="submit" class="standard_alignment" value="Submit">
+<div class="jumbotron">
+  <h1 class="display-4">Spamalot</h1>
+  <p class="lead">Faster Avalon Roles</p>
+</div>
+    <h1>Login</h1>
+    <p>
+        Choose a display name. Pick something reasonable, so your group can identify you without having to ask.
+    </p>
+<div class="row">
+    <form method="POST" class="col-md-6 mb-2">
+      <div class="form-group">
+        <label for="user_input">Username</label>
+        <input type="text" name="user_input" class="form-control" value="{{ username }}">
+        <small id="passwordHelpBlock" class="form-text text-muted">
+            Username must be greater than 2 characters and less than 40, and cannot contain any special characters other than space.
+        </small>
+      </div>
+      <button type="submit" class="btn btn-primary">Login</button>
     </form>
-
+  </div>
+</div>
 {%  endblock %}
