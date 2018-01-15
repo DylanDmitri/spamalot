@@ -161,7 +161,12 @@ def Configuration(form):
     conf['complaints'] = []
     conf['roles'] = [role for role in conf['boxes'] if role in form]
 
-    size = {'evil':(2,3)[conf['num_players'] > 6]}
+    size = {'evil':2}
+    if conf['num_players'] >= 7:
+        size['evil'] = 3
+    elif conf['num_players'] >= 10:
+        size['evil'] = 4
+
     size['good'] = conf['num_players'] - size['evil']
 
     for name,group,role in (('evil',EVIL_GROUP,Role.generic_evil),
