@@ -111,7 +111,7 @@ class Room:
             'game.html',
             roomcode=session['room'],
             doing_config=self.doing_config,
-            players=shuffled(self.players),
+            players=self.players,
             roles=', '.join(self.config['roles']),
             status=f'{len(self.players)}/{self.config["num_players"]}',
             role_info=self.role_info(uid),
@@ -252,11 +252,13 @@ class Login(Carafe):
     def process(self, form):
         newname = form['user_input'].strip()
 
+
         self.complain([message for condition, message in (
                   (newname in names and newname!=names.get(session['uid'], None), 'Username is already taken.'),
                   (not (set(newname) < set(ascii_letters + " ")),'No special characters.'),
                   (len(newname)<2, 'Username is too short'),
-                  (len(newname)>30,'Username is too long'))
+                  (len(newname)>30,'Username is too long'),
+                  (newname.replace('I', 'l') in names or newname.replace('l', 'I') is names, 'ROSEBAUGH STOP IT'))
                   if condition])
 
         names[session['uid']] = newname
