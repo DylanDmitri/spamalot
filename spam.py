@@ -248,7 +248,7 @@ class Login(Carafe):
         newname = form['user_input'].strip()
 
         self.complain([message for condition, message in (
-                  (newname in names and newname!=names[session['uid']], 'Username is already taken.'),
+                  (newname in names and newname!=names.get(session['uid'], None), 'Username is already taken.'),
                   (not (set(newname) < set(ascii_letters + " ")),'No special characters.'),
                   (len(newname)<2, 'Username is too short'),
                   (len(newname)>30,'Username is too long'))
