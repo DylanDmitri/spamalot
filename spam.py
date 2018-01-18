@@ -15,7 +15,7 @@ class Role:
     merlin = 'Merlin'
     percival = 'Percival'
     assassin = 'the Assassin'
-    morganna = 'Morgana'
+    morgana = 'Morgana'
     mordred = 'Mordred'
     oberron = 'Oberon'
 
@@ -27,12 +27,12 @@ EVIL_GROUP = EVERY_ROLE - LANCELOTS - GOOD_GROUP
 VISION_MATRIX = (
     # these people    know that    those people       are        this
     ({Role.merlin},                EVIL_GROUP - {Role.mordred},  'evil as shit'),
-    ({Role.percival},              {Role.merlin, Role.morganna}, 'Merlin or Morgana'),
+    ({Role.percival},              {Role.merlin, Role.morgana}, 'Merlin or Morgana'),
     (EVIL_GROUP - {Role.oberron},  EVIL_GROUP - {Role.oberron},  'also evil as shit'),
     (LANCELOTS,                    LANCELOTS,                    'the other Lancelot'))
 
 DEFAULT_FORM = {'num_players':7, Role.merlin:True, Role.percival:True,
-                Role.assassin:True, Role.morganna:True, Role.mordred:True,}
+                Role.assassin:True, Role.morgana:True, Role.mordred:True,}
 EMPTY_FORM = {'num_players':-1}
 
 # ---- helpers ----
@@ -148,7 +148,7 @@ def Configuration(form):
     conf = {}
 
     conf['checkboxes'] = ((Role.merlin,Role.percival),
-                          (Role.assassin,Role.morganna,Role.mordred,Role.oberron),
+                          (Role.assassin,Role.morgana,Role.mordred,Role.oberron),
                           (Role.good_lancelot,Role.evil_lancelot))
 
     conf['boxes'] = [r for g in conf['checkboxes'] for r in g]
