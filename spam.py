@@ -26,10 +26,11 @@ EVIL_GROUP = EVERY_ROLE - LANCELOTS - GOOD_GROUP
 
 VISION_MATRIX = (
     # these people    know that    those people       are        this
-    ({Role.merlin},                EVIL_GROUP - {Role.mordred},  'evil as shit'),
-    ({Role.percival},              {Role.merlin, Role.morgana}, 'Merlin or Morgana'),
+    ({Role.merlin},                EVIL_GROUP - {Role.mordred} + {Role.evil_lancelot},  'evil as shit'),
+    ({Role.percival},              {Role.merlin, Role.morgana},  'Merlin or Morgana'),
     (EVIL_GROUP - {Role.oberron},  EVIL_GROUP - {Role.oberron},  'also evil as shit'),
-    (LANCELOTS,                    LANCELOTS,                    'the other Lancelot'))
+    (EVIL_GROUP - {Role.oberron},  LANCELOTS,                    'the Lancelots'),
+    (LANCELOTS,                    LANCELOTS,                    'the other Lancelot'),)
 
 DEFAULT_FORM = {'num_players':7, Role.merlin:True, Role.percival:True,
                 Role.assassin:True, Role.morgana:True, Role.mordred:True,}
