@@ -26,7 +26,7 @@ EVIL_GROUP = EVERY_ROLE - LANCELOTS - GOOD_GROUP
 
 VISION_MATRIX = (
     # these people    know that    those people       are        this
-    ({Role.merlin},                EVIL_GROUP - {Role.mordred} + {Role.evil_lancelot},  'evil as shit'),
+    ({Role.merlin},                {*EVIL_GROUP, Role.evil_lancelot} - {Role.mordred},  'evil as shit'),
     ({Role.percival},              {Role.merlin, Role.morgana},  'Merlin or Morgana'),
     (EVIL_GROUP - {Role.oberron},  EVIL_GROUP - {Role.oberron},  'also evil as shit'),
     (EVIL_GROUP - {Role.oberron},  LANCELOTS,                    'the Lancelots'),
