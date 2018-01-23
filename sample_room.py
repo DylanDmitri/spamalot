@@ -1,9 +1,11 @@
 import spam
+from spam import Role
 
 # = = = = = = = = =
 # = = testing = = =
 # = = = = = = = = =
-namegen = iter(('alice', 'bob', 'carol', 'dave', 'edgar', 'francis', 'gerald', 'harry'))
+namegen = iter(('alice', 'bob', 'carol', 'dave', 'edgar', 'francis', 'gerald', 'harry',
+                'isabelle', 'jeffery', 'karl', 'liam', 'mary'))
 
 class FakePerson:
     def __init__(self):
@@ -16,14 +18,19 @@ class FakePerson:
         spam.names[self.uid] = self.name
         r.assignments.setdefault(self.uid)
 
+# - - - - - - - - -
+SL_FORM = {'num_players':11, 'num_lancelots':1,
+                Role.merlin:True, Role.percival:True, Role.assassin:True, Role.morgana:True, Role.mordred:True,
+        }
+
 # --- build sample room ----
 backup = spam.session
 spam.session = {'uid': 'tester'}
 spam.names['tester'] = 'tester'
 r = spam.Room()
-r.configure(spam.Configuration(spam.DEFAULT_FORM))
+r.configure(spam.Configuration(SL_FORM))
 spam.rooms['test'] = r
-for _ in range(6):
+for _ in range(7):
     FakePerson().join(r)
 spam.session = backup
 
