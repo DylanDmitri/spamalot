@@ -3,15 +3,19 @@ from random import choice, shuffle
 from string import ascii_letters
 import os
 
-WORDS = ["time", "year", "people", "day", "man", "thing", "woman", "life", "child", "world", "school", "state", "family", "student", "group", "country", "problem", "hand", "part", "place", "case", "week", "company", "system", "program", "question", "work", "number", "night", "point", "home", "water", "room", "mother", "area", "money", "story", "fact", "month", "lot", "right", "study", "book", "eye", "job", "word", "business", "issue", "side", "kind", "head", "house", "service", "friend", "father", "power", "hour", "game", "line", "end", "member", "law", "car", "city", "community", "name", "president", "team", "minute", "idea", "kid", "body", "back", "parent", "face", "others", "level", "office", "door", "health", "person", "art", "war", "history", "party", "result", "change", "morning", "reason", "research", "girl", "guy", "moment", "air", "teacher", "force"]
+WORDS = tuple(open('room_names.txt'))
 
 # --- globals ---
 class Role:
     generic_good = 'Generic good'
     generic_evil = 'Generic evil'
 
-    good_lancelot = 'Good lancelot'
-    evil_lancelot = 'Evil lancelot'
+    good_lancelot = 'Good Lancelot'
+    evil_lancelot = 'Evil Lancelot'
+
+    single_lancelot_good = 'the Good Lancelot'
+    single_lancelot_evil = 'the Evil Lancelot'
+
     merlin = 'Merlin'
     percival = 'Percival'
     assassin = 'the Assassin'
@@ -20,17 +24,24 @@ class Role:
     oberron = 'Oberon'
 
 EVERY_ROLE = {v for k,v in Role.__dict__.items() if not k.startswith('_')}
-LANCELOTS = {Role.good_lancelot,Role.evil_lancelot}
-GOOD_GROUP = {Role.merlin,Role.percival,Role.generic_good}
-EVIL_GROUP = EVERY_ROLE - LANCELOTS - GOOD_GROUP
+
+DOUBLE_LANCELOTS = {Role.good_lancelot,Role.evil_lancelot}
+SINGLE_LANCELOTS = {Role.single_lancelot_good,Role.single_lancelot_evil}
+
+GOOD_ALIGNED = {Role.merlin,Role.percival,Role.generic_good}
+EVIL_GROUP = {Role.assassin, Role.mordred, Role.morgana, Role.generic_evil}
+EVIL_ALIGNED = {*EVIL_GROUP, Role.oberron}
+
+VISIBLE_EVIL = {*EVIL_ALIGNED, Role.evil_lancelot, Role.single_lancelot_evil, Role.single_lancelot_good} - {Role.mordred}
 
 VISION_MATRIX = (
     # these people    know that    those people       are        this
-    ({Role.merlin},                {*EVIL_GROUP, Role.evil_lancelot} - {Role.mordred},  'evil as shit'),
-    ({Role.percival},              {Role.merlin, Role.morgana},  'Merlin or Morgana'),
-    (EVIL_GROUP - {Role.oberron},  EVIL_GROUP - {Role.oberron},  'also evil as shit'),
-    (EVIL_GROUP - {Role.oberron},  LANCELOTS,                    'the Lancelots'),
-    (LANCELOTS,                    LANCELOTS,                    'the other Lancelot'),)
+    ({Role.merlin},     VISIBLE_EVIL,                 'evil as shit'),
+    ({Role.percival},   {Role.merlin, Role.morgana},  'Merlin or Morgana'),
+    (EVIL_GROUP,        EVIL_GROUP,                   'also evil as shit'),
+    (EVIL_GROUP,        DOUBLE_LANCELOTS,             'the Lancelots'),
+    (EVIL_GROUP,        SINGLE_LANCELOTS,             'the Lancelot'),
+    (DOUBLE_LANCELOTS,  DOUBLE_LANCELOTS,             'the other Lancelot'),)
 
 DEFAULT_FORM = {'num_players':7, Role.merlin:True, Role.percival:True,
                 Role.assassin:True, Role.morgana:True, Role.mordred:True,}
@@ -149,18 +160,27 @@ def Configuration(form):
     conf = {}
 
     conf['checkboxes'] = ((Role.merlin,Role.percival),
-                          (Role.assassin,Role.morgana,Role.mordred,Role.oberron),
-                          (Role.good_lancelot,Role.evil_lancelot))
+                          (Role.assassin,Role.morgana,Role.mordred,Role.oberron))
 
     conf['boxes'] = [r for g in conf['checkboxes'] for r in g]
 
     # needed by html
     conf['num_players'] = int(form['num_players'])
+    conf['num_lancelots'] = int(form.get('num_lancelots', 0))
+
     conf['selected'] = {r:r in form for r in conf['boxes']}
 
     # generate a list of roles
     conf['complaints'] = []
+
     conf['roles'] = [role for role in conf['boxes'] if role in form]
+
+    if conf['num_lancelots'] == 1:
+        conf['roles'].append(
+            choice((Role.single_lancelot_evil, Role.single_lancelot_good)))
+    elif conf['num_lancelots'] == 2:
+        conf['roles'].append(Role.good_lancelot)
+        conf['roles'].append(Role.evil_lancelot)
 
     size = {'evil':2}
     if conf['num_players'] >= 7:
@@ -170,8 +190,8 @@ def Configuration(form):
 
     size['good'] = conf['num_players'] - size['evil']
 
-    for name,group,role in (('evil',EVIL_GROUP,Role.generic_evil),
-                            ('good',GOOD_GROUP,Role.generic_good)):
+    for name,group,role in (('evil',EVIL_ALIGNED,Role.generic_evil),
+                            ('good',GOOD_ALIGNED,Role.generic_good)):
 
         special = sum(n in conf['roles'] for n in group)
         generic = size[name] - special

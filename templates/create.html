@@ -28,9 +28,6 @@
         {% if (loop.index == 2) %}
           <b>Evil</b>
         {% endif %}
-        {% if (loop.index == 3) %}
-          <b>Neutral</b>
-        {% endif %}
       </label>
       {% for role in group %}
         <div class="form-check">
@@ -40,6 +37,17 @@
       {% endfor %}
     </div>
   {% endfor %}
+
+  <div class="form-group">
+    <label><b>Lancelots</b></label>
+    <select name="num_lancelots" class="form-control">
+      {% for i in range(0, 3) %}
+        <option value="{{ i }}" {%if num_lancelots==i%}selected="selected"{% endif %}>
+          {{ i }} lancelots
+        </option>
+      {% endfor %}
+    </select>
+  </div>
 
   <div>
       <input type="submit" class="btn btn-primary" value="Make Room">
