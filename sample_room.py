@@ -30,7 +30,7 @@ spam.names['tester'] = 'tester'
 r = spam.Room()
 r.configure(spam.Configuration(SL_FORM))
 spam.rooms['test'] = r
-for _ in range(7):
+for _ in range(10):
     FakePerson().join(r)
 spam.session = backup
 
