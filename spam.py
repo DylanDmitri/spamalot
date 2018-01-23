@@ -1,9 +1,12 @@
 from flask import Flask, request, render_template, redirect, url_for, session
 from random import choice, shuffle
 from string import ascii_letters
+from time import time
 import os
 
+
 WORDS = tuple(open('room_names.txt'))
+NAME_TIMEOUT = 300  # in seconds
 
 # --- globals ---
 class Role:
@@ -84,6 +87,7 @@ class bidirection(dict):
 
 # --- database ---
 names = bidirection()
+name_last_used = {}
 rooms = {}
 
 # --- models ---
@@ -233,6 +237,9 @@ class Carafe:
         if (session['uid'] not in names) and (self.name != 'login'):
             return redirect(url_for('login'))
 
+        if session['uid'] in names:
+            name_last_used[names[session['uid']]] = time()
+
         session['fromc'] = False
 
         return self.render()
@@ -274,13 +281,28 @@ class Login(Carafe):
     def process(self, form):
         newname = form['user_input'].strip()
 
+        username_taken = False
+        if newname in names:
+            if newname==names.get(session['uid'], None):
+                '''then it's your name, and it's okay'''
+            elif time() - name_last_used.get(newname, 0) > NAME_TIMEOUT:
+                '''then it's timed out, and it's okay'''
+            else:
+                username_taken = True
+
         self.complain([message for condition, message in (
-                  (newname in names and newname!=names.get(session['uid'], None), 'Username is already taken.'),
+                  (username_taken, 'Username is already taken.'),
                   (not (set(newname) < set(ascii_letters + " ")),'No special characters.'),
                   (len(newname)<2, 'Username is too short'),
                   (len(newname)>30,'Username is too long'))
                   if condition])
 
+        # out with the old
+        if newname in names:
+            names[newname] = None
+
+        # in with the new
+        name_last_used[newname] = time()
         names[session['uid']] = newname
         return redirect(url_for('index'))
 
