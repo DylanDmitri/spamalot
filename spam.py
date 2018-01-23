@@ -5,7 +5,7 @@ from time import time
 import os
 
 
-WORDS = tuple(open('room_names.txt'))
+WORDS = tuple(n.strip() for n in open('room_names.txt'))
 NAME_TIMEOUT = 300  # in seconds
 
 # --- globals ---
@@ -97,6 +97,8 @@ class Room:
         self.assignments = bidirection()
         self.doing_config = names[session['uid']]
 
+        self.rematch = False
+
     def configure(self, config):
         self.config = config
         self.possibly_make_assignments()
@@ -104,6 +106,7 @@ class Room:
 
     def possibly_make_assignments(self):
         if self.config and self.full and all(self.assignments[uid] is None for uid in self.uids):
+            self.rematch = False
             for uid, r in zip(shuffled(self.uids),self.config['roles']):
                 self.assignments[uid] = r
 
@@ -240,8 +243,6 @@ class Carafe:
         if session['uid'] in names:
             name_last_used[names[session['uid']]] = time()
 
-        session['fromc'] = False
-
         return self.render()
 
     def render(self):
@@ -306,13 +307,14 @@ class Login(Carafe):
         names[session['uid']] = newname
         return redirect(url_for('index'))
 
+class CreateRandomRoom(Carafe):
+    def render(self):
+        session['room'] = newRoomCode()
+        rooms[session['room']] = Room()
+        return redirect(url_for('create'))
+
 class Create(Carafe):
     def context(self):
-        if not session['fromc']:
-            session['room'] = newRoomCode()
-
-        rooms[session['room']] = Room()
-        session['fromc'] = True
         return session.get('config', Configuration(DEFAULT_FORM))
 
     def process(self, form):
@@ -341,10 +343,16 @@ class Game(Carafe):
         return room().render(session['uid'])
 
     def process(self, form):  # rematch
-        if room().full:
+        if room().rematch is False:
+            newcode = newRoomCode()
+            room().rematch = newcode
             session['config'] = room().config
+
+            rooms[newcode] = Room()
+            session['room'] = newcode
             return redirect(url_for('create'))
 
+        session['room'] = room().rematch
         return redirect(url_for('game'))
 
 # and run the darned thing
