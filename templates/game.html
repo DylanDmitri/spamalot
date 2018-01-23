@@ -1,48 +1,66 @@
 {% extends "base/back_button.html" %}
+
+{% block header %}
+<script src="/bower_components/sweetalert2/dist/sweetalert2.min.js"></script>
+<link rel="stylesheet" href="/bower_components/sweetalert2/dist/sweetalert2.min.css">
+
+<style>
+.blur-container {
+  -webkit-filter: blur(10px);
+  -moz-filter: blur(10px);
+  -o-filter: blur(10px);
+  -ms-filter: blur(10px);
+  filter: blur(10px);
+}
+
+</style>
+{% endblock %}
+
 {% block content %}
-
-  <h2>Room <small>{{ roomcode }}</small></h2>
-  {% if role_info|length != 0 %}
-  <div class="row mt-2">
-    <div class="col mb-2">
-      <form method="POST">
-        <a href="/" class="btn btn-secondary float-right ml-2">Leave room</a>
-        <input type="submit" class="btn btn-primary float-right" value="Rematch">
-      </form>
+  <div class="row">
+    <div class="col-md">
+      <h2>Room <small class="text-muted">{{ roomcode }}</small></h2>
     </div>
-  </div>
-  {% endif %}
-
-  {% if role_info|length != 0 %}
-  <div class="row mt-2">
-    <div class="col mb-2">
-      <form method="POST">
-        <a href="/" class="btn btn-secondary float-right ml-2">Leave room</a>
-        <input type="submit" class="btn btn-primary float-right" value="Rematch">
-      </form>
+    {% if not role_info.has_role %}
+      <div class="col-md mb-2">
+        <form method="POST">
+          <a href="/" class="btn btn-secondary float-right ml-2 mb-1">Leave room</a>
+          <input type="submit" class="btn btn-primary float-right mb-1" value="Rematch">
+        </form>
+      </div>
     </div>
+    {% endif %}
   </div>
-  {% endif %}
 
   {% if doing_config %}
     <p><b>{{ doing_config }}</b> is currently configuring this room.</p>
   {% else %}
-    {% if role_info|length == 0 %}
-      <p>Waiting for additional players. Invite them with code "{{ roomcode }}"</p>
+    {% if not role_info.has_role %}
+      <p>Waiting for additional players. Invite them with code <code>{{ roomcode }}</code>.</p>
     {% endif %}
-    <h5> Players <small>{{ status }}</small> </h5>
-    <ul>
-      {% for plr in players %}
-        <li>
-          {{ plr }}
-        </li>
-      {% endfor %}
-    </ul>
-    <h5> Configured roles </h5> {{ roles }}
+    <div class="row">
+      <div class="col mt-2">
+        <h5>Players <small class="text-muted">{{ status }}</small></h5>
+        <ul class="list-unstyled">
+          {% for plr in players %}
+            <li>{{ plr }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      <div class="col mt-2">
+        <h5>Roles</h5>
+          <ul class="list-unstyled">
+            {% for role in roles %}
+              <li class="text-{{role.css_class}}">{{ role.name }}{% if role.count > 1 %}&nbsp;<span class="badge badge-secondary badge-pill">x{{role.count}}</span>{% endif %}</li>
+            {% endfor %}
+          </ul>
+        </ul>
+      </div>
+    </div>
   {% endif %}
 
-  {% if role_info|length == 0 %}
-    <div class="row mt-4">
+  {% if not role_info.has_role %}
+    <div class="row mt-2">
       <div class="col">
         <!-- Before everyone has joined -->
         <!-- <a href="/game" class="btn btn-primary">Refresh</a>
@@ -57,17 +75,83 @@
     </div>
   {% else %}
     <div class="row mt-2">
-      <div class="col mb-2">
-        <h5>Your role</h5>
-        {% for message in role_info %}
-          {% if loop.first %}
-            You are <b>{{ message }}</b>.
-          {% else %}
-            {{ message }}
-          {% endif %}
-          <br>
-        {% endfor %}
+      <div class="col">
+        <h5>Your role <small class="text-muted">{{ role_info.role_name }}</small></h5>
+        You are <b class="text-{{ role_info.role_css_class }}">{{ role_info.role_name }}</b>. You are <b class="text-{{ role_info.role_css_class }}">{{ role_info.original_alignment }}</b>.
+        <ul class="list-unstyled">
+          {% for message in role_info.messages %}
+            <li>
+              {% for person in message.people %}
+                <span class="text-{{ message.people_css_class }}">{{person}}</span>{% if loop.index == loop.length - 1 %} and {% elif loop.index < loop.length - 1 %}, {% endif %}
+              {% endfor %}
+              {% if message.people|length == 1 %} is {% else %} are {% endif %}
+              {{ message.text }}.
+            </li>
+          {% endfor %}
+        </ul>
       </div>
     </div>
+
+    <div class="row mt-2">
+      <div class="col mb-4">
+        <h5>Role cards</h5>
+        <button role="button" id="role-card-button" class="btn btn-primary mb-1">Show Role</button>
+        <button role="button" id="alignment-card-button" class="btn btn-primary mb-1">Show Alignment</button>
+        <p>
+          <small class="text-muted">Open these cards when you are Laked and pass your phone to the other player. The card shows the original alignment (for lancelot games).</small>
+        </p>
+        <small>
+      </div>
+    </div>
+
   {% endif %}
 {%  endblock %}
+
+{% block script %}
+  {% if role_info.has_role %}
+    <script>
+      var main_container = $('#main-container')
+      swal.setDefaults({
+        allowOutsideClick: false,
+        allowEscapeKey: true,
+        allowEnterKey: true,
+      })
+
+      $('#alignment-card-button').click(function() {
+        main_container.addClass('blur-container')
+
+        swal({
+          // type: '{{ "success" if role_info.original_is_good else "warning" }}',
+          title: '{{ username }} is {{ role_info.original_alignment }}.',
+          // text: '',
+        }).then((result) => {
+          swal({
+            type: 'success',
+            text: 'Pass back the phone.',
+            confirmButtonText: 'Close',
+          }).then(() => {
+            main_container.removeClass('blur-container')
+          })
+        })
+      })
+
+      $('#role-card-button').click(function() {
+        main_container.addClass('blur-container')
+
+        swal({
+          // type: '{{ "success" if role_info.original_is_good else "warning" }}',
+          title: '{{ username }} is {{ role_info.role_name }}.',
+          text: 'On the {{ role_info.original_alignment }} team!',
+        }).then((result) => {
+          swal({
+            type: 'success',
+            text: 'Pass back the phone.',
+            confirmButtonText: 'Close',
+          }).then(() => {
+            main_container.removeClass('blur-container')
+          })
+        })
+      })
+    </script>
+  {% endif %}
+{% endblock %}
