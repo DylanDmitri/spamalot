@@ -183,8 +183,6 @@ regret
 rest
 reward
 rhythm
-284.
-
 rice
 river
 road
@@ -199,7 +197,6 @@ scale
 sea
 seat
 self
-
 sense
 sex
 shade

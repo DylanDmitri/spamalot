@@ -1,11 +1,13 @@
-from flask import Flask, request, render_template, redirect, url_for, session
+from flask import Flask, request, render_template, redirect, url_for, session, send_from_directory
 from random import choice, shuffle
 from string import ascii_letters
+from collections import Counter
 from time import time
 import os
 
-
-WORDS = tuple(n.strip() for n in open('room_names.txt'))
+dir = os.path.dirname(__file__)
+filename = os.path.join(dir, 'room_names.txt')
+WORDS = tuple(n.strip() for n in open(filename))
 NAME_TIMEOUT = 300  # in seconds
 
 # --- globals ---
@@ -28,6 +30,11 @@ class Role:
 
 EVERY_ROLE = {v for k,v in Role.__dict__.items() if not k.startswith('_')}
 
+DISPLAY_OVERRIDE = {
+    Role.single_lancelot_good: 'Lancelot',
+    Role.single_lancelot_evil: 'Lancelot',
+}
+
 DOUBLE_LANCELOTS = {Role.good_lancelot,Role.evil_lancelot}
 SINGLE_LANCELOTS = {Role.single_lancelot_good,Role.single_lancelot_evil}
 
@@ -35,24 +42,25 @@ GOOD_ALIGNED = {Role.merlin,Role.percival,Role.generic_good}
 EVIL_GROUP = {Role.assassin, Role.mordred, Role.morgana, Role.generic_evil}
 EVIL_ALIGNED = {*EVIL_GROUP, Role.oberron}
 
+GOOD_ALIGNED_ALL = {*GOOD_ALIGNED, Role.good_lancelot, Role.single_lancelot_good}
+EVIL_ALIGNED_ALL = {*EVIL_ALIGNED, Role.evil_lancelot, Role.single_lancelot_evil}
+
 VISIBLE_EVIL = {*EVIL_ALIGNED, Role.evil_lancelot, Role.single_lancelot_evil, Role.single_lancelot_good} - {Role.mordred}
 
 VISION_MATRIX = (
-    # these people    know that    those people       are        this
-    ({Role.merlin},     VISIBLE_EVIL,                 'evil as shit'),
-    ({Role.percival},   {Role.merlin, Role.morgana},  'Merlin or Morgana'),
-    (EVIL_GROUP,        EVIL_GROUP,                   'also evil as shit'),
-    (EVIL_GROUP,        DOUBLE_LANCELOTS,             'the Lancelots'),
-    (EVIL_GROUP,        SINGLE_LANCELOTS,             'the Lancelot'),
-    (DOUBLE_LANCELOTS,  DOUBLE_LANCELOTS,             'the other Lancelot'),)
+    # these people    know that    those people       are        this        css_class
+    ({Role.merlin},     VISIBLE_EVIL,                 'evil as shit',       'danger'),
+    ({Role.percival},   {Role.merlin, Role.morgana},  'Merlin or Morgana',  'warning'),
+    (EVIL_GROUP,        EVIL_GROUP,                   'also evil as shit',  'danger'),
+    (EVIL_GROUP,        DOUBLE_LANCELOTS,             'the Lancelots',      'warning'),
+    (EVIL_GROUP,        SINGLE_LANCELOTS,             'the Lancelot',       'warning'),
+    (DOUBLE_LANCELOTS,  DOUBLE_LANCELOTS,             'the other Lancelot', 'warning'),)
 
 DEFAULT_FORM = {'num_players':7, Role.merlin:True, Role.percival:True,
                 Role.assassin:True, Role.morgana:True, Role.mordred:True,}
 EMPTY_FORM = {'num_players':-1}
 
 # ---- helpers ----
-def room():
-    return rooms[session['room']]
 
 def random_string(length):
     return ''.join(choice(ascii_letters) for _ in range(length))
@@ -92,11 +100,12 @@ rooms = {}
 
 # --- models ---
 class Room:
-    def __init__(self):
+    def __init__(self, creator_uid):
         self.config = Configuration(EMPTY_FORM)
         self.assignments = bidirection()
         self.doing_config = names[session['uid']]
 
+        self.creator_uid = creator_uid
         self.rematch = False
 
     def configure(self, config):
@@ -122,28 +131,59 @@ class Room:
     def full(self):
         return len(self.uids) == self.config['num_players']
 
+    def get_role_css_class(self, role):
+        if role in GOOD_ALIGNED:
+            return 'info'
+        elif role in EVIL_ALIGNED:
+            return 'danger'
+        else:
+            return ''
+
     def render(self,uid):
         self.assignments.setdefault(uid)
         self.possibly_make_assignments()
-
+        role_counts = Counter(self.config['roles'])
+        roles = roles=[{
+            'name': DISPLAY_OVERRIDE[name] if name in DISPLAY_OVERRIDE else name,
+            'count': count,
+            'css_class': self.get_role_css_class(name),
+            } for name, count in role_counts.items()]
         return render_template(
             'game.html',
+            username=names.get(session['uid'], ''), # hacky
             roomcode=session['room'],
             doing_config=self.doing_config,
+            is_creator=session['uid'] == self.creator_uid,
             players=self.players,
-            roles=', '.join(self.config['roles']),
+            roles=roles,
             status=f'{len(self.players)}/{self.config["num_players"]}',
             role_info=self.role_info(uid),
         )
 
     def role_info(self, your_uid):
-        your_role = self.assignments.get(your_uid,None)
-        info = []
+        your_role = self.assignments.get(your_uid, None)
 
-        if your_role is not None:
-            info.append(f'{your_role}')
+        info = {
+            'messages': [],
+            'has_role': True,
+            'role_name': '',
+            'role_css_class': self.get_role_css_class(your_role),
+            'original_is_good': False, # Hack for easy code in alignment sweet alert
+            'original_alignment': 'Error',
+        }
 
-        for group,target,description in VISION_MATRIX:
+        if your_role is None:
+            info['has_role'] = False
+            return info
+
+        info['role_name'] = f'{your_role}'
+        if your_role in GOOD_ALIGNED_ALL:
+            info['original_alignment'] = 'good'
+            info['original_is_good'] = True
+        elif your_role in EVIL_ALIGNED_ALL:
+            info['original_alignment'] = 'evil'
+
+        for group,target,description,people_css_class in VISION_MATRIX:
             if your_role not in group: continue
 
             people = [names[uid] for uid in
@@ -151,15 +191,30 @@ class Room:
                       if uid not in (your_uid,None)]
 
             if people:
-                l = (f'{people[0]} is',
-                     f'{", ".join(people[:-1]) + " and " + people[-1] } are'
-                     )[len(people) > 1]
-                info.append(f'{l} {description}.')
+                # l = (f'{people[0]} is',
+                #      f'{", ".join(people[:-1]) + " and " + people[-1] } are'
+                #      )[len(people) > 1]
+                # info['messages'].append(f'{l} {description}.')
+                info['messages'].append({
+                    'people': people,
+                    'text': description,
+                    'people_css_class': people_css_class,
+                })
 
         if your_role is Role.merlin and Role.mordred in self.config['roles']:
-            info.append('Mordred remains hidden.')
+            info['messages'].append({
+                'people': ['Mordred'],
+                'text': 'remains hidden',
+                'people_css_class': 'danger',
+                'custom_message': True,
+            })
         if your_role in EVIL_GROUP-{Role.oberron} and Role.oberron in self.config['roles']:
-            info.append('Oberron is out there somewhere.')
+            info['messages'].append({
+                'people': ['Oberron'],
+                'text': 'is out there somewhere',
+                'people_css_class': 'danger',
+                'custom_message': True,
+            })
 
         return info
 
@@ -218,6 +273,10 @@ class ComplaintException(Exception):
 
 app = Flask(__name__)
 app.secret_key = get_secret()
+
+@app.route('/bower_components/<path:path>')
+def send_js(path):
+    return send_from_directory('bower_components', path)
 
 class Carafe:
     def __init__(self):
@@ -310,7 +369,7 @@ class Login(Carafe):
 class CreateRandomRoom(Carafe):
     def render(self):
         session['room'] = newRoomCode()
-        rooms[session['room']] = Room()
+        rooms[session['room']] = Room(session['uid'])
         return redirect(url_for('create'))
 
 class Create(Carafe):
@@ -323,7 +382,8 @@ class Create(Carafe):
 
         self.complain(config['complaints'])
 
-        room().configure(config)
+        room = rooms[session['room']]
+        room.configure(config)
         return redirect(url_for('game'))
 
 class Join(Carafe):
@@ -340,19 +400,21 @@ class Join(Carafe):
 
 class Game(Carafe):
     def render(self):
-        return room().render(session['uid'])
+        room = rooms[session['room']]
+        return room.render(session['uid'])
 
     def process(self, form):  # rematch
-        if room().rematch is False:
-            newcode = newRoomCode()
-            room().rematch = newcode
-            session['config'] = room().config
+        room = rooms[session['room']]
+        if room.rematch is False:
+            newcode = newRoomCode() # THIS IS BROKEN
+            room.rematch = newcode
+            session['config'] = room.config
 
-            rooms[newcode] = Room()
+            rooms[newcode] = Room(session['uid'])
             session['room'] = newcode
             return redirect(url_for('create'))
 
-        session['room'] = room().rematch
+        session['room'] = room.rematch
         return redirect(url_for('game'))
 
 # and run the darned thing
