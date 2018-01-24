@@ -106,7 +106,6 @@ class Room:
         self.doing_config = names[session['uid']]
 
         self.creator_uid = creator_uid
-        self.rematch = False
 
     def configure(self, config):
         self.config = config
@@ -115,7 +114,6 @@ class Room:
 
     def possibly_make_assignments(self):
         if self.config and self.full and all(self.assignments[uid] is None for uid in self.uids):
-            self.rematch = False
             for uid, r in zip(shuffled(self.uids),self.config['roles']):
                 self.assignments[uid] = r
 
@@ -389,11 +387,11 @@ class Create(Carafe):
 class Join(Carafe):
     def process(self, form):
         session['room'] = ''.join(c for c in form['user_input'] if c in ascii_letters).lower()
-        target = rooms.get(session['room'])
+        room = rooms.get(session['room'])
 
-        if target is None:
+        if room is None:
             self.complain('That room does not exist')
-        elif target.full and session['uid'] not in target:
+        elif room.full and session['uid'] not in room.uids:
             self.complain('That room is already full')
 
         return redirect(url_for('game'))
@@ -403,19 +401,15 @@ class Game(Carafe):
         room = rooms[session['room']]
         return room.render(session['uid'])
 
-    def process(self, form):  # rematch
-        room = rooms[session['room']]
-        if room.rematch is False:
-            newcode = newRoomCode() # THIS IS BROKEN
-            room.rematch = newcode
-            session['config'] = room.config
+    def process(self, form): # rematch
+        roomcode = session['room']
+        oldRoom = rooms[roomcode]
+        session['config'] = oldRoom.config
 
-            rooms[newcode] = Room(session['uid'])
-            session['room'] = newcode
-            return redirect(url_for('create'))
+        rooms[roomcode] = Room(session['uid'])
+        session['room'] = roomcode
 
-        session['room'] = room.rematch
-        return redirect(url_for('game'))
+        return redirect(url_for('create'))
 
 # and run the darned thing
 if __name__ == '__main__':

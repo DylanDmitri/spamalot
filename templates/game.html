@@ -22,10 +22,13 @@
       <h2>Room <small class="text-muted">{{ roomcode }}</small></h2>
     </div>
     <div class="col-md mb-2">
-      <form method="POST">
         <a href="/" class="btn btn-secondary float-right ml-2 mb-1">Leave room</a>
-        <input type="submit" class="btn btn-primary float-right mb-1" value="Rematch">
-      </form>
+        {% if is_creator %}
+          <form method="POST">
+            <input type="submit" class="btn btn-primary float-right mb-1" value="Rematch">
+            <small class="float-right">Only the host can rematch (which is you). Once you rematch tell your friends to refresh to page to rejoin.</small>
+          </form>
+        {% endif %}
     </div>
   </div>
 
@@ -33,7 +36,7 @@
     <p><b>{{ doing_config }}</b> is currently configuring this room.</p>
   {% else %}
     {% if not role_info.has_role %}
-      <p>Waiting for additional players. Invite them with code <code>{{ roomcode }}</code>.</p>
+      <p>Waiting for more players. Invite with code <code class="text-muted">{{ roomcode }}</code class="text-muted">.</p>
     {% endif %}
     <div class="row">
       <div class="col mt-2">
@@ -56,21 +59,7 @@
     </div>
   {% endif %}
 
-  {% if not role_info.has_role %}
-    <div class="row mt-2">
-      <div class="col">
-        <!-- Before everyone has joined -->
-        <!-- <a href="/game" class="btn btn-primary">Refresh</a>
-        <a href="/join" class="btn btn-secondary">Cancel</a> -->
-        <script>
-          console.log("Refreshing hack soon");
-          setTimeout(function() {
-            location.reload();
-          }, 3000);
-        </script>
-      </div>
-    </div>
-  {% else %}
+  {% if role_info.has_role %}
     <div class="row mt-2">
       <div class="col">
         <h5>Your role</h5>
@@ -99,14 +88,21 @@
         <p>
           <small class="text-muted">Open these cards when you are Laked and pass your phone to the other player. The card shows the original alignment (for lancelot games).</small>
         </p>
-        <small>
       </div>
     </div>
-
   {% endif %}
 {%  endblock %}
 
 {% block script %}
+  {% if not role_info.has_role %}
+  <script>
+    console.log("Refreshing hack implemented");
+    setTimeout(function() {
+      location.reload();
+    }, 3000);
+  </script>
+  {% endif %}
+
   {% if role_info.has_role %}
     <script>
       var main_container = $('#main-container')
