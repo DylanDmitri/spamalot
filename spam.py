@@ -5,7 +5,9 @@ from collections import Counter
 from time import time
 import os
 
-WORDS = tuple(n.strip() for n in open('room_names.txt'))
+dir = os.path.dirname(__file__)
+filename = os.path.join(dir, 'room_names.txt')
+WORDS = tuple(n.strip() for n in open(filename))
 NAME_TIMEOUT = 300  # in seconds
 
 # --- globals ---
@@ -16,8 +18,8 @@ class Role:
     good_lancelot = 'Good Lancelot'
     evil_lancelot = 'Evil Lancelot'
 
-    single_lancelot_good = 'Lancelot'
-    single_lancelot_evil = 'Lancelot'
+    single_lancelot_good = 'the Good Lancelot'
+    single_lancelot_evil = 'the Evil Lancelot'
 
     merlin = 'Merlin'
     percival = 'Percival'
@@ -27,6 +29,11 @@ class Role:
     oberron = 'Oberon'
 
 EVERY_ROLE = {v for k,v in Role.__dict__.items() if not k.startswith('_')}
+
+DISPLAY_OVERRIDE = {
+    Role.single_lancelot_good: 'Lancelot',
+    Role.single_lancelot_evil: 'Lancelot',
+}
 
 DOUBLE_LANCELOTS = {Role.good_lancelot,Role.evil_lancelot}
 SINGLE_LANCELOTS = {Role.single_lancelot_good,Role.single_lancelot_evil}
@@ -54,8 +61,6 @@ DEFAULT_FORM = {'num_players':7, Role.merlin:True, Role.percival:True,
 EMPTY_FORM = {'num_players':-1}
 
 # ---- helpers ----
-def room():
-    return rooms[session['room']]
 
 def random_string(length):
     return ''.join(choice(ascii_letters) for _ in range(length))
@@ -95,11 +100,12 @@ rooms = {}
 
 # --- models ---
 class Room:
-    def __init__(self):
+    def __init__(self, creator_uid):
         self.config = Configuration(EMPTY_FORM)
         self.assignments = bidirection()
         self.doing_config = names[session['uid']]
 
+        self.creator_uid = creator_uid
         self.rematch = False
 
     def configure(self, config):
@@ -138,7 +144,7 @@ class Room:
         self.possibly_make_assignments()
         role_counts = Counter(self.config['roles'])
         roles = roles=[{
-            'name': name,
+            'name': DISPLAY_OVERRIDE[name] if name in DISPLAY_OVERRIDE else name,
             'count': count,
             'css_class': self.get_role_css_class(name),
             } for name, count in role_counts.items()]
@@ -147,6 +153,7 @@ class Room:
             username=names.get(session['uid'], ''), # hacky
             roomcode=session['room'],
             doing_config=self.doing_config,
+            is_creator=session['uid'] == self.creator_uid,
             players=self.players,
             roles=roles,
             status=f'{len(self.players)}/{self.config["num_players"]}',
@@ -199,12 +206,14 @@ class Room:
                 'people': ['Mordred'],
                 'text': 'remains hidden',
                 'people_css_class': 'danger',
+                'custom_message': True,
             })
         if your_role in EVIL_GROUP-{Role.oberron} and Role.oberron in self.config['roles']:
             info['messages'].append({
                 'people': ['Oberron'],
                 'text': 'is out there somewhere',
                 'people_css_class': 'danger',
+                'custom_message': True,
             })
 
         return info
@@ -360,7 +369,7 @@ class Login(Carafe):
 class CreateRandomRoom(Carafe):
     def render(self):
         session['room'] = newRoomCode()
-        rooms[session['room']] = Room()
+        rooms[session['room']] = Room(session['uid'])
         return redirect(url_for('create'))
 
 class Create(Carafe):
@@ -373,7 +382,8 @@ class Create(Carafe):
 
         self.complain(config['complaints'])
 
-        room().configure(config)
+        room = rooms[session['room']]
+        room.configure(config)
         return redirect(url_for('game'))
 
 class Join(Carafe):
@@ -390,19 +400,21 @@ class Join(Carafe):
 
 class Game(Carafe):
     def render(self):
-        return room().render(session['uid'])
+        room = rooms[session['room']]
+        return room.render(session['uid'])
 
     def process(self, form):  # rematch
-        if room().rematch is False:
-            newcode = newRoomCode()
-            room().rematch = newcode
-            session['config'] = room().config
+        room = rooms[session['room']]
+        if room.rematch is False:
+            newcode = newRoomCode() # THIS IS BROKEN
+            room.rematch = newcode
+            session['config'] = room.config
 
-            rooms[newcode] = Room()
+            rooms[newcode] = Room(session['uid'])
             session['room'] = newcode
             return redirect(url_for('create'))
 
-        session['room'] = room().rematch
+        session['room'] = room.rematch
         return redirect(url_for('game'))
 
 # and run the darned thing

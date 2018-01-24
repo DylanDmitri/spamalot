@@ -6,11 +6,11 @@
 
 <style>
 .blur-container {
-  -webkit-filter: blur(10px);
-  -moz-filter: blur(10px);
-  -o-filter: blur(10px);
-  -ms-filter: blur(10px);
-  filter: blur(10px);
+  -webkit-filter: blur(25px);
+  -moz-filter: blur(25px);
+  -o-filter: blur(25px);
+  -ms-filter: blur(25px);
+  filter: blur(25px);
 }
 
 </style>
@@ -21,15 +21,12 @@
     <div class="col-md">
       <h2>Room <small class="text-muted">{{ roomcode }}</small></h2>
     </div>
-    {% if not role_info.has_role %}
-      <div class="col-md mb-2">
-        <form method="POST">
-          <a href="/" class="btn btn-secondary float-right ml-2 mb-1">Leave room</a>
-          <input type="submit" class="btn btn-primary float-right mb-1" value="Rematch">
-        </form>
-      </div>
+    <div class="col-md mb-2">
+      <form method="POST">
+        <a href="/" class="btn btn-secondary float-right ml-2 mb-1">Leave room</a>
+        <input type="submit" class="btn btn-primary float-right mb-1" value="Rematch">
+      </form>
     </div>
-    {% endif %}
   </div>
 
   {% if doing_config %}
@@ -76,7 +73,7 @@
   {% else %}
     <div class="row mt-2">
       <div class="col">
-        <h5>Your role <small class="text-muted">{{ role_info.role_name }}</small></h5>
+        <h5>Your role</h5>
         You are <b class="text-{{ role_info.role_css_class }}">{{ role_info.role_name }}</b>. You are <b class="text-{{ role_info.role_css_class }}">{{ role_info.original_alignment }}</b>.
         <ul class="list-unstyled">
           {% for message in role_info.messages %}
@@ -84,7 +81,9 @@
               {% for person in message.people %}
                 <span class="text-{{ message.people_css_class }}">{{person}}</span>{% if loop.index == loop.length - 1 %} and {% elif loop.index < loop.length - 1 %}, {% endif %}
               {% endfor %}
-              {% if message.people|length == 1 %} is {% else %} are {% endif %}
+              {% if not message.custom_message %}
+                {% if message.people|length == 1 %} is {% else %} are {% endif %}
+              {% endif %}
               {{ message.text }}.
             </li>
           {% endfor %}
@@ -141,7 +140,7 @@
         swal({
           // type: '{{ "success" if role_info.original_is_good else "warning" }}',
           title: '{{ username }} is {{ role_info.role_name }}.',
-          text: 'On the {{ role_info.original_alignment }} team!',
+          // text: 'On the {{ role_info.original_alignment }} team!',
         }).then((result) => {
           swal({
             type: 'success',
