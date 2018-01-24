@@ -28,9 +28,9 @@ backup = spam.session
 spam.session = {'uid': 'tester'}
 spam.names['tester'] = 'tester'
 r = spam.Room()
-r.configure(spam.Configuration(SL_FORM))
+r.configure(spam.Configuration(spam.DEFAULT_FORM))
 spam.rooms['test'] = r
-for _ in range(10):
+for _ in range(5):
     FakePerson().join(r)
 spam.session = backup
 
