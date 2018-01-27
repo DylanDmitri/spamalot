@@ -5,8 +5,7 @@ from collections import Counter
 from time import time
 import os
 
-dir = os.path.dirname(__file__)
-filename = os.path.join(dir, 'room_names.txt')
+filename = os.path.join(os.path.dirname(__file__), 'room_names.txt')
 WORDS = tuple(n.strip() for n in open(filename))
 NAME_TIMEOUT = 300  # in seconds
 
@@ -70,6 +69,7 @@ def newRoomCode():
         tentative = choice(WORDS)
         if rooms.get(tentative) is None:
             return tentative
+    return "BEANS"
 
 def get_secret():
     if 'secret.txt' not in os.listdir('.'):
@@ -102,7 +102,8 @@ rooms = {}
 class Room:
     def __init__(self, creator_uid):
         self.config = Configuration(EMPTY_FORM)
-        self.assignments = bidirection()
+        self.assignments = {} # uid -> role
+        self.role_lookup = {}
         self.doing_config = names[session['uid']]
 
         self.creator_uid = creator_uid
@@ -116,6 +117,7 @@ class Room:
         if self.config and self.full and all(self.assignments[uid] is None for uid in self.uids):
             for uid, r in zip(shuffled(self.uids),self.config['roles']):
                 self.assignments[uid] = r
+                self.role_lookup[r] = uid
 
     @property
     def players(self):
@@ -123,11 +125,11 @@ class Room:
 
     @property
     def uids(self):
-        return [k for k in self.assignments if type(k) is str and len(k) > 40]
+        return tuple(self.assignments)
 
     @property
     def full(self):
-        return len(self.uids) == self.config['num_players']
+        return len(self.assignments) == self.config['num_players']
 
     def get_role_css_class(self, role):
         if role in GOOD_ALIGNED:
@@ -185,14 +187,10 @@ class Room:
             if your_role not in group: continue
 
             people = [names[uid] for uid in
-                      (self.assignments.get(role,None) for role in target)
+                      (self.role_lookup.get(role,None) for role in target)
                       if uid not in (your_uid,None)]
 
             if people:
-                # l = (f'{people[0]} is',
-                #      f'{", ".join(people[:-1]) + " and " + people[-1] } are'
-                #      )[len(people) > 1]
-                # info['messages'].append(f'{l} {description}.')
                 info['messages'].append({
                     'people': people,
                     'text': description,
