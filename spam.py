@@ -81,20 +81,8 @@ def shuffled(i):
     shuffle(p)
     return p
 
-class bidirection(dict):
-    def __setitem__(self, key, value):
-        for k in key, self.get(key):
-            if k in self:
-                del self[k]
-        super().__setitem__(key, value)
-        super().__setitem__(value, key)
-
-    def setdefault(self, k, d=None):
-        if k not in self:
-            self[k] = d
-
 # --- database ---
-names = bidirection()
+names = {}
 name_last_used = {}
 rooms = {}
 
@@ -206,7 +194,7 @@ class Room:
             })
         if your_role in EVIL_GROUP-{Role.oberron} and Role.oberron in self.config['roles']:
             info['messages'].append({
-                'people': ['Oberron'],
+                'people': ['Oberon'],
                 'text': 'is out there somewhere',
                 'people_css_class': 'danger',
                 'custom_message': True,
@@ -338,7 +326,7 @@ class Login(Carafe):
         newname = form['user_input'].strip()
 
         username_taken = False
-        if newname in names:
+        if newname in names.values():
             if newname==names.get(session['uid'], None):
                 '''then it's your name, and it's okay'''
             elif time() - name_last_used.get(newname, 0) > NAME_TIMEOUT:
@@ -354,7 +342,7 @@ class Login(Carafe):
                   if condition])
 
         # out with the old
-        if newname in names:
+        if newname in names.values():
             names[newname] = None
 
         # in with the new
