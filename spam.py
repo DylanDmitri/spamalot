@@ -208,7 +208,7 @@ class Room:
             })
         if your_role in EVIL_GROUP-{Role.oberron} and Role.oberron in self.config['roles']:
             info['messages'].append({
-                'people': ['Oberron'],
+                'people': ['Oberon'],
                 'text': 'is out there somewhere',
                 'people_css_class': 'danger',
                 'custom_message': True,
