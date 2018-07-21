@@ -202,6 +202,7 @@ class Room:
 
         return info
 
+
 def Configuration(form):
     conf = {}
 
@@ -234,7 +235,7 @@ def Configuration(form):
     if conf['num_players'] >= 10:
         size['evil'] = 4
 
-    size['good'] = conf['num_players'] - size['evil']
+    size['good'] = conf['num_players'] - size['evil'] - conf['num_lancelots']
 
     for name,group,role in (('evil',EVIL_ALIGNED,Role.generic_evil),
                             ('good',GOOD_ALIGNED,Role.generic_good)):
