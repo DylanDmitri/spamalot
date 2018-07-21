@@ -1,6 +1,6 @@
 # SPAMALOT
 
-Better role assignments in Avalon. [Currently running here.](http://dylandmitri.pythonanywhere.com/)
+Better role assignments in Avalon. [Currently running here.](https://avalon.quenty.org/)
 
 ## current features
 
@@ -14,19 +14,14 @@ Better role assignments in Avalon. [Currently running here.](http://dylandmitri.
 
 #### rematch button
  - to play another one easily
+ - only the room creator can rematch
 
 ## future work
-
-#### improve role listing  (easy)
-- write "2 generic good" rather than "generic good, generic good"
 
 #### quick join (medium)
 - on the join page, add additional buttons on the button
 - these link to recently created rooms
 - and are labeled ```join room "abcd"``` or whatever
-
-#### room garbage collection (medium)
-Currently, rooms are never deleted; memory usage rises slowly until server restart. This is bad; fix it
 
 #### role draft (hard)
 - Rather than assign roles randomly, players can choose.
