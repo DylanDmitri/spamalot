@@ -5,7 +5,8 @@ from collections import Counter
 from time import time
 import os
 
-filename = os.path.join(os.path.dirname(__file__), 'room_names.txt')
+dir = os.path.dirname(__file__)
+filename = os.path.join(dir, 'room_names.txt')
 WORDS = tuple(n.strip() for n in open(filename))
 NAME_TIMEOUT = 300  # in seconds
 
@@ -65,11 +66,10 @@ def random_string(length):
     return ''.join(choice(ascii_letters) for _ in range(length))
 
 def newRoomCode():
-    for _ in range(50):
+    for _ in range(len(WORDS)):
         tentative = choice(WORDS)
         if rooms.get(tentative) is None:
             return tentative
-    return "BEANS"
 
 def get_secret():
     if 'secret.txt' not in os.listdir('.'):
@@ -81,17 +81,29 @@ def shuffled(i):
     shuffle(p)
     return p
 
+class bidirection(dict):
+    def __setitem__(self, key, value):
+        for k in key, self.get(key):
+            if k in self:
+                del self[k]
+        super().__setitem__(key, value)
+        super().__setitem__(value, key)
+
+    def setdefault(self, k, d=None):
+        if k not in self:
+            self[k] = d
+
 # --- database ---
-names = {}
+names = bidirection()
 name_last_used = {}
 rooms = {}
 
 # --- models ---
 class Room:
-    def __init__(self, creator_uid):
+    def __init__(self, creator_uid, room_code):
+        self.room_code = room_code
         self.config = Configuration(EMPTY_FORM)
-        self.assignments = {} # uid -> role
-        self.role_lookup = {}
+        self.assignments = bidirection()
         self.doing_config = names[session['uid']]
 
         self.creator_uid = creator_uid
@@ -105,19 +117,23 @@ class Room:
         if self.config and self.full and all(self.assignments[uid] is None for uid in self.uids):
             for uid, r in zip(shuffled(self.uids),self.config['roles']):
                 self.assignments[uid] = r
-                self.role_lookup[r] = uid
 
     @property
     def players(self):
         return [names[uid] for uid in self.uids]
 
     @property
+    def spectators(self):
+        return self._spectaters
+
+
+    @property
     def uids(self):
-        return tuple(self.assignments)
+        return [k for k in self.assignments if type(k) is str and len(k) > 40]
 
     @property
     def full(self):
-        return len(self.assignments) == self.config['num_players']
+        return len(self.uids) == self.config['num_players']
 
     def get_role_css_class(self, role):
         if role in GOOD_ALIGNED:
@@ -175,10 +191,14 @@ class Room:
             if your_role not in group: continue
 
             people = [names[uid] for uid in
-                      (self.role_lookup.get(role,None) for role in target)
+                      (self.assignments.get(role,None) for role in target)
                       if uid not in (your_uid,None)]
 
             if people:
+                # l = (f'{people[0]} is',
+                #      f'{", ".join(people[:-1]) + " and " + people[-1] } are'
+                #      )[len(people) > 1]
+                # info['messages'].append(f'{l} {description}.')
                 info['messages'].append({
                     'people': people,
                     'text': description,
@@ -235,7 +255,7 @@ def Configuration(form):
     if conf['num_players'] >= 10:
         size['evil'] = 4
 
-    size['good'] = conf['num_players'] - size['evil'] - conf['num_lancelots']
+    size['good'] = conf['num_players'] - size['evil']
 
     for name,group,role in (('evil',EVIL_ALIGNED,Role.generic_evil),
                             ('good',GOOD_ALIGNED,Role.generic_good)):
@@ -327,7 +347,7 @@ class Login(Carafe):
         newname = form['user_input'].strip()
 
         username_taken = False
-        if newname in names.values():
+        if newname in names:
             if newname==names.get(session['uid'], None):
                 '''then it's your name, and it's okay'''
             elif time() - name_last_used.get(newname, 0) > NAME_TIMEOUT:
@@ -343,7 +363,7 @@ class Login(Carafe):
                   if condition])
 
         # out with the old
-        if newname in names.values():
+        if newname in names:
             names[newname] = None
 
         # in with the new
@@ -353,8 +373,9 @@ class Login(Carafe):
 
 class CreateRandomRoom(Carafe):
     def render(self):
-        session['room'] = newRoomCode()
-        rooms[session['room']] = Room(session['uid'])
+        room_code = newRoomCode()
+        session['room'] = room_code
+        rooms[room_code] = Room(session['uid'], room_code)
         return redirect(url_for('create'))
 
 class Create(Carafe):
@@ -383,6 +404,17 @@ class Join(Carafe):
 
         return redirect(url_for('game'))
 
+class JoinSpectate(Join):
+    def process(self, form):
+        session['room'] = ''.join(c for c in form['user_input'] if c in ascii_letters).lower()
+        room = rooms.get(session['room'])
+
+        if room is None:
+            self.complain('That room does not exist')
+
+        session['spectate'] = room.room_code or self.complain("Internal error: No room code stored in room")
+        return redirect(url_for('game'))
+
 class Game(Carafe):
     def render(self):
         room = rooms[session['room']]
@@ -393,7 +425,7 @@ class Game(Carafe):
         oldRoom = rooms[roomcode]
         session['config'] = oldRoom.config
 
-        rooms[roomcode] = Room(session['uid'])
+        rooms[roomcode] = Room(session['uid'], roomcode)
         session['room'] = roomcode
 
         return redirect(url_for('create'))

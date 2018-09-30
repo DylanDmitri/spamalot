@@ -25,12 +25,13 @@ SL_FORM = {'num_players':11, 'num_lancelots':1,
 
 # --- build sample room ----
 backup = spam.session
+room_code = 'test'
 spam.session = {'uid': 'tester'}
 spam.names['tester'] = 'tester'
-r = spam.Room('tester')
+r = spam.Room('tester', room_code)
 r.configure(spam.Configuration(SL_FORM))
-spam.rooms['test'] = r
-for _ in range(9):
+spam.rooms[room_code] = r
+for _ in range(11):
     FakePerson().join(r)
 spam.session = backup
 
