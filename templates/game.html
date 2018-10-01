@@ -62,8 +62,13 @@
   {% if role_info.has_role %}
     <div class="row mt-2">
       <div class="col">
-        <h5>Your role</h5>
-        You are <b class="text-{{ role_info.role_css_class }}">{{ role_info.role_name }}</b>. You are <b class="text-{{ role_info.role_css_class }}">{{ role_info.original_alignment }}</b>.
+          <h5>Your role</h5>
+          {%  if role_info.role_name == "spectator" %}
+              You are Spectating. <hr>
+          {% else %}
+            You are <b class="text-{{ role_info.role_css_class }}">{{ role_info.role_name }}</b>. You are <b class="text-{{ role_info.role_css_class }}">{{ role_info.original_alignment }}</b>.
+          {% endif %}
+
         <ul class="list-unstyled">
           {% for message in role_info.messages %}
             <li>
@@ -80,16 +85,18 @@
       </div>
     </div>
 
-    <div class="row mt-2">
-      <div class="col mb-4">
-        <h5>Role cards</h5>
-        <button role="button" id="role-card-button" class="btn btn-primary mb-1">Show Role</button>
-        <button role="button" id="alignment-card-button" class="btn btn-primary mb-1">Show Alignment</button>
-        <p>
-          <small class="text-muted">Open these cards when you are Laked and pass your phone to the other player. The card shows the original alignment (for lancelot games).</small>
-        </p>
-      </div>
-    </div>
+    {%  if role_info.role_name != "spectator" %}
+        <div class="row mt-2">
+          <div class="col mb-4">
+            <h5>Role cards</h5>
+            <button role="button" id="role-card-button" class="btn btn-primary mb-1">Show Role</button>
+            <button role="button" id="alignment-card-button" class="btn btn-primary mb-1">Show Alignment</button>
+            <p>
+              <small class="text-muted">Open these cards when you are Laked and pass your phone to the other player. The card shows the original alignment (for lancelot games).</small>
+            </p>
+          </div>
+        </div>
+    {% endif %}
   {% endif %}
 {%  endblock %}
 
