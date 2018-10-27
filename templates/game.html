@@ -64,12 +64,19 @@
       <div class="col">
           <h5>Your role</h5>
           {%  if role_info.role_name == "spectator" %}
-              You are Spectating. <hr>
+            You are Spectating.
+            <hr/>
           {% else %}
             You are <b class="text-{{ role_info.role_css_class }}">{{ role_info.role_name }}</b>. You are <b class="text-{{ role_info.role_css_class }}">{{ role_info.original_alignment }}</b>.
           {% endif %}
 
-        <ul class="list-unstyled">
+        <ul id="info_container"
+        {% if role_info.role_name == "spectator" %}
+          class="list-unstyled blur-container"
+        {% else %}
+          class="list-unstyled"
+        {% endif %}
+        >
           {% for message in role_info.messages %}
             <li>
               {% for person in message.people %}
@@ -112,15 +119,15 @@
 
   {% if role_info.has_role %}
     <script>
-      var main_container = $('#main-container')
+      var main_container = $('#main-container');
       swal.setDefaults({
         allowOutsideClick: false,
         allowEscapeKey: true,
         allowEnterKey: true,
-      })
+      });
 
       $('#alignment-card-button').click(function() {
-        main_container.addClass('blur-container')
+        main_container.addClass('blur-container');
 
         swal({
           // type: '{{ "success" if role_info.original_is_good else "warning" }}',
@@ -132,9 +139,9 @@
             text: 'Pass back the phone.',
             confirmButtonText: 'Close',
           }).then(() => {
-            main_container.removeClass('blur-container')
-          })
-        })
+            main_container.removeClass('blur-container');
+          });
+        });
       })
 
       $('#role-card-button').click(function() {
@@ -150,10 +157,34 @@
             text: 'Pass back the phone.',
             confirmButtonText: 'Close',
           }).then(() => {
-            main_container.removeClass('blur-container')
-          })
-        })
+            main_container.removeClass('blur-container');
+          });
+        });
       })
+
+      {% if role_info.role_name == "spectator" %}
+        var info_container = $('#info_container');
+        main_container.addClass('blur-container');
+
+        swal({
+          type: 'warning',
+          // type: '{{ "success" if role_info.original_is_good else "warning" }}',
+          title: 'Spectate mode',
+          text: 'This room is full, you are about to join as a spectator. This will reveal all roles in the game. Do you want to spectate?',
+          showCancelButton: true,
+          showCloseButton: true,
+          confirmButtonText: 'Confirm',
+          cancelButtonText: 'Cancel'
+        }).then((result) => {
+          if (result) {
+            main_container.removeClass('blur-container');
+            info_container.removeClass('blur-container');
+          } else {
+            window.history.back();
+          }
+        });
+
+      {% endif %}
     </script>
   {% endif %}
 {% endblock %}
