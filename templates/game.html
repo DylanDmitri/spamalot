@@ -176,7 +176,7 @@
           confirmButtonText: 'Confirm',
           cancelButtonText: 'Cancel'
         }).then((result) => {
-          if (result) {
+          if (result.value) {
             main_container.removeClass('blur-container');
             info_container.removeClass('blur-container');
           } else {

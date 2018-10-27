@@ -129,7 +129,7 @@ class Room:
             return 'warning'
 
     def render(self,uid):
-        if self.full:
+        if self.full and not (uid in self.uids):
             self.spectators.add(uid)
         else:
             self.assignments.setdefault(uid)
