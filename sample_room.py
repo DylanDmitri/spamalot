@@ -30,9 +30,11 @@ spam.names['tester'] = 'tester'
 r = spam.Room('tester')
 r.configure(spam.Configuration(SL_FORM))
 spam.rooms['test'] = r
-for _ in range(9):
+for _ in range(11):
     FakePerson().join(r)
 spam.session = backup
+
+r.possibly_make_assignments()
 
 # --- already logged in
 spam.names['bRrHUmsqwkMyfBcuizpbGDasIOSDgoIWQDUWvBVVhnMJyoJDvl'] = 'Chrome'

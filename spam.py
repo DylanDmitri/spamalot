@@ -1,7 +1,7 @@
 from flask import Flask, request, render_template, redirect, url_for, session, send_from_directory
 from random import choice, shuffle
 from string import ascii_letters
-from collections import Counter
+from collections import Counter, defaultdict
 from time import time
 import os
 
@@ -91,7 +91,8 @@ class Room:
     def __init__(self, creator_uid):
         self.config = Configuration(EMPTY_FORM)
         self.assignments = {} # uid -> role
-        self.role_lookup = {}
+        self.role_lookup = defaultdict(lambda: set())
+        self.spectators = set()
         self.doing_config = names[session['uid']]
 
         self.creator_uid = creator_uid
@@ -105,7 +106,7 @@ class Room:
         if self.config and self.full and all(self.assignments[uid] is None for uid in self.uids):
             for uid, r in zip(shuffled(self.uids),self.config['roles']):
                 self.assignments[uid] = r
-                self.role_lookup[r] = uid
+                self.role_lookup[r].add(uid)
 
     @property
     def players(self):
@@ -125,17 +126,22 @@ class Room:
         elif role in EVIL_ALIGNED:
             return 'danger'
         else:
-            return ''
+            return 'warning'
 
     def render(self,uid):
-        self.assignments.setdefault(uid)
-        self.possibly_make_assignments()
+        if self.full:
+            self.spectators.add(uid)
+        else:
+            self.assignments.setdefault(uid)
+            self.possibly_make_assignments()
+
         role_counts = Counter(self.config['roles'])
-        roles = roles=[{
+        roles = [{
             'name': DISPLAY_OVERRIDE[name] if name in DISPLAY_OVERRIDE else name,
             'count': count,
             'css_class': self.get_role_css_class(name),
             } for name, count in role_counts.items()]
+
         return render_template(
             'game.html',
             username=names.get(session['uid'], ''), # hacky
@@ -149,6 +155,9 @@ class Room:
         )
 
     def role_info(self, your_uid):
+        if your_uid in self.spectators:
+            return self.spectator_info()
+
         your_role = self.assignments.get(your_uid, None)
 
         info = {
@@ -175,7 +184,7 @@ class Room:
             if your_role not in group: continue
 
             people = [names[uid] for uid in
-                      (self.role_lookup.get(role,None) for role in target)
+                      set.union(*[self.role_lookup.get(role,set()) for role in target])
                       if uid not in (your_uid,None)]
 
             if people:
@@ -202,8 +211,31 @@ class Room:
 
         return info
 
+    def spectator_info(self):
+        info = {
+            'messages': [],
+            'has_role': True,
+            'role_name': 'spectator',
+        }
+
+        for role in EVERY_ROLE:
+            if role not in self.role_lookup: continue
+
+            people = [names[uid] for uid in self.role_lookup[role]]
+
+            info['messages'].append({
+                'people': people,
+                'text': role,
+                'people_css_class': self.get_role_css_class(role)
+            })
+
+        return info
+
 
 def Configuration(form):
+    """
+    Transforms: Checked Options -> List of Roles
+    """
     conf = {}
 
     conf['checkboxes'] = ((Role.merlin,Role.percival),
@@ -378,8 +410,10 @@ class Join(Carafe):
 
         if room is None:
             self.complain('That room does not exist')
+
         elif room.full and session['uid'] not in room.uids:
-            self.complain('That room is already full')
+            return redirect(url_for('game'))
+            # self.complain('That room is already full')
 
         return redirect(url_for('game'))
 
