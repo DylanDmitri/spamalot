@@ -200,19 +200,11 @@ class Room:
 
         if self.config['prank_mode']:
             valid_fakes = self.players
-            try:
-                valid_fakes.remove(your_uid)
-            except ValueError:
-                pass
+            valid_fakes.remove(names[your_uid])
 
-            fake_evil = []
-
-            for role in self.config['roles']:
-                if role not in VISIBLE_EVIL:
-                    continue
-                evil_person = choice(valid_fakes)
-                valid_fakes.remove(evil_person)
-                fake_evil.append(evil_person)
+            num_evil = len(set(self.config['roles']) & set(VISIBLE_EVIL))
+            shuffle(valid_fakes)
+            fake_evil = valid_fakes[0:num_evil]
 
             info['messages'].append({
                 'people': fake_evil,
@@ -275,10 +267,7 @@ def Configuration(form):
 
     conf['selected'] = {r:r in form for r in conf['boxes']}
 
-    if form.get('enable_prank_mode'):
-        conf['prank_mode'] = randint(1, 100) == 1
-    else:
-        conf['prank_mode'] = False
+    conf['prank_mode'] = randint(1, 100) == 1 if form.get('enable_prank_mode') else False
 
     # generate a list of roles
     conf['complaints'] = []
