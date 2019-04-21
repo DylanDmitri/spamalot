@@ -1,5 +1,5 @@
 from flask import Flask, request, render_template, redirect, url_for, session, send_from_directory
-from random import choice, shuffle
+from random import choice, shuffle, randint
 from string import ascii_letters
 from collections import Counter, defaultdict
 from time import time
@@ -104,9 +104,13 @@ class Room:
 
     def possibly_make_assignments(self):
         if self.config and self.full and all(self.assignments[uid] is None for uid in self.uids):
-            for uid, r in zip(shuffled(self.uids),self.config['roles']):
-                self.assignments[uid] = r
-                self.role_lookup[r].add(uid)
+            if self.config['prank_mode']:
+                for uid in self.uids:
+                    self.assignments[uid] = Role.merlin
+            else:
+                for uid, r in zip(shuffled(self.uids),self.config['roles']):
+                    self.assignments[uid] = r
+                    self.role_lookup[r].add(uid)
 
     @property
     def players(self):
@@ -194,6 +198,20 @@ class Room:
                     'people_css_class': people_css_class,
                 })
 
+        if self.config['prank_mode']:
+            valid_fakes = self.players
+            valid_fakes.remove(names[your_uid])
+
+            num_evil = len(set(self.config['roles']) & set(VISIBLE_EVIL))
+            shuffle(valid_fakes)
+            fake_evil = valid_fakes[0:num_evil]
+
+            info['messages'].append({
+                'people': fake_evil,
+                'text': 'evil as shit',
+                'people_css_class': 'danger'
+            })
+
         if your_role is Role.merlin and Role.mordred in self.config['roles']:
             info['messages'].append({
                 'people': ['Mordred'],
@@ -248,6 +266,8 @@ def Configuration(form):
     conf['num_lancelots'] = int(form.get('num_lancelots', 0))
 
     conf['selected'] = {r:r in form for r in conf['boxes']}
+
+    conf['prank_mode'] = randint(1, 100) == 1 if form.get('enable_prank_mode') else False
 
     # generate a list of roles
     conf['complaints'] = []
