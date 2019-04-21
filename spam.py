@@ -25,7 +25,7 @@ class Role:
     assassin = 'the Assassin'
     morgana = 'Morgana'
     mordred = 'Mordred'
-    oberron = 'Oberon'
+    oberon = 'Oberon'
 
 EVERY_ROLE = {v for k,v in Role.__dict__.items() if not k.startswith('_')}
 
@@ -39,7 +39,7 @@ SINGLE_LANCELOTS = {Role.single_lancelot_good,Role.single_lancelot_evil}
 
 GOOD_ALIGNED = {Role.merlin,Role.percival,Role.generic_good}
 EVIL_GROUP = {Role.assassin, Role.mordred, Role.morgana, Role.generic_evil}
-EVIL_ALIGNED = {*EVIL_GROUP, Role.oberron}
+EVIL_ALIGNED = {*EVIL_GROUP, Role.oberon}
 
 GOOD_ALIGNED_ALL = {*GOOD_ALIGNED, Role.good_lancelot, Role.single_lancelot_good}
 EVIL_ALIGNED_ALL = {*EVIL_ALIGNED, Role.evil_lancelot, Role.single_lancelot_evil}
@@ -219,7 +219,7 @@ class Room:
                 'people_css_class': 'danger',
                 'custom_message': True,
             })
-        if your_role in EVIL_GROUP-{Role.oberron} and Role.oberron in self.config['roles']:
+        if your_role in EVIL_GROUP-{Role.oberon} and Role.oberon in self.config['roles']:
             info['messages'].append({
                 'people': ['Oberon'],
                 'text': 'is out there somewhere',
@@ -257,7 +257,7 @@ def Configuration(form):
     conf = {}
 
     conf['checkboxes'] = ((Role.merlin,Role.percival),
-                          (Role.assassin,Role.morgana,Role.mordred,Role.oberron))
+                          (Role.assassin,Role.morgana,Role.mordred,Role.oberon))
 
     conf['boxes'] = [r for g in conf['checkboxes'] for r in g]
 
