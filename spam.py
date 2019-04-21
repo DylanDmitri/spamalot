@@ -1,5 +1,5 @@
 from flask import Flask, request, render_template, redirect, url_for, session, send_from_directory
-from random import choice, shuffle
+from random import choice, shuffle, randint
 from string import ascii_letters
 from collections import Counter, defaultdict
 from time import time
@@ -104,9 +104,13 @@ class Room:
 
     def possibly_make_assignments(self):
         if self.config and self.full and all(self.assignments[uid] is None for uid in self.uids):
-            for uid, r in zip(shuffled(self.uids),self.config['roles']):
-                self.assignments[uid] = r
-                self.role_lookup[r].add(uid)
+            if self.config['prank_mode']:
+                for uid in self.uids:
+                    self.assignments[uid] = Role.merlin
+            else:
+                for uid, r in zip(shuffled(self.uids),self.config['roles']):
+                    self.assignments[uid] = r
+                    self.role_lookup[r].add(uid)
 
     @property
     def players(self):
@@ -194,6 +198,28 @@ class Room:
                     'people_css_class': people_css_class,
                 })
 
+        if self.config['prank_mode']:
+            valid_fakes = self.players
+            try:
+                valid_fakes.remove(your_uid)
+            except ValueError:
+                pass
+
+            fake_evil = []
+
+            for role in self.config['roles']:
+                if role not in VISIBLE_EVIL:
+                    continue
+                evil_person = choice(valid_fakes)
+                valid_fakes.remove(evil_person)
+                fake_evil.append(evil_person)
+
+            info['messages'].append({
+                'people': fake_evil,
+                'text': 'evil as shit',
+                'people_css_class': 'danger'
+            })
+
         if your_role is Role.merlin and Role.mordred in self.config['roles']:
             info['messages'].append({
                 'people': ['Mordred'],
@@ -248,6 +274,11 @@ def Configuration(form):
     conf['num_lancelots'] = int(form.get('num_lancelots', 0))
 
     conf['selected'] = {r:r in form for r in conf['boxes']}
+
+    if form.get('enable_prank_mode'):
+        conf['prank_mode'] = randint(1, 100) == 1
+    else:
+        conf['prank_mode'] = False
 
     # generate a list of roles
     conf['complaints'] = []
