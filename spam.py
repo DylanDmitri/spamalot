@@ -48,9 +48,9 @@ VISIBLE_EVIL = {*EVIL_ALIGNED, Role.evil_lancelot, Role.single_lancelot_evil, Ro
 
 VISION_MATRIX = (
     # these people    know that    those people       are        this        css_class
-    ({Role.merlin},     VISIBLE_EVIL,                 'evil as shit',       'danger'),
+    ({Role.merlin},     VISIBLE_EVIL,                 'evil',               'danger'),
     ({Role.percival},   {Role.merlin, Role.morgana},  'Merlin or Morgana',  'warning'),
-    (EVIL_GROUP,        EVIL_GROUP,                   'also evil as shit',  'danger'),
+    (EVIL_GROUP,        EVIL_GROUP,                   'also evil',          'danger'),
     (EVIL_GROUP,        DOUBLE_LANCELOTS,             'the Lancelots',      'warning'),
     (EVIL_GROUP,        SINGLE_LANCELOTS,             'the Lancelot',       'warning'),
     (DOUBLE_LANCELOTS,  DOUBLE_LANCELOTS,             'the other Lancelot', 'warning'),)
@@ -452,4 +452,4 @@ class Game(Carafe):
 
 # and run the darned thing
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=False)
