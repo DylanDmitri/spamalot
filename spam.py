@@ -81,6 +81,7 @@ def shuffled(i):
     shuffle(p)
     return p
 
+
 # --- database ---
 names = {}
 name_last_used = {}
@@ -132,6 +133,13 @@ class Room:
             return 'danger'
         else:
             return 'warning'
+
+    def get_prank_targets(self, your_role, valid_fakes, target):
+        fake_people_num = len([role for role in target if
+                               role is not your_role and role in self.config['roles']])
+        shuffle(valid_fakes)
+        people = valid_fakes[0:fake_people_num]
+        return people
 
     def render(self,uid):
         if self.full and not (uid in self.uids):
@@ -185,21 +193,18 @@ class Room:
         elif your_role in EVIL_ALIGNED_ALL:
             info['original_alignment'] = 'evil'
 
-        valid_fakes = self.players
+        valid_fakes = list(names.values())
         valid_fakes.remove(names[your_uid])
 
         for group,target,description,people_css_class in VISION_MATRIX:
             if your_role not in group: continue
 
-            if not self.config.get('prank_everyone_is'):
-                people = [names[uid] for uid in
-                          set.union(*[self.role_lookup.get(role,set()) for role in target])
-                          if uid not in (your_uid,None)]
-            else:
-                fake_people_num = len([role for role in target if
-                                       role is not your_role and role in self.config['roles']])
-                shuffle(valid_fakes)
-                people = valid_fakes[0:fake_people_num]
+            people = [names[uid] for uid in
+                      set.union(*[self.role_lookup.get(role, set()) for role in target])
+                      if uid not in (your_uid, None)]
+
+            if self.config.get('prank_everyone_is'):
+                people = self.get_prank_targets(your_role, valid_fakes, target)
                 valid_fakes = list(fake for fake in valid_fakes if fake not in people)
 
             if people:
