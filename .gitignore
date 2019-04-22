@@ -1,3 +1,5 @@
 .idea/*.*
 __pycache__/*.*
 secret.txt
+*.out
+*.sublime-workspace
