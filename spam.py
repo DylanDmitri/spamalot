@@ -81,6 +81,7 @@ def shuffled(i):
     shuffle(p)
     return p
 
+
 # --- database ---
 names = {}
 name_last_used = {}
@@ -104,13 +105,14 @@ class Room:
 
     def possibly_make_assignments(self):
         if self.config and self.full and all(self.assignments[uid] is None for uid in self.uids):
-            if self.config['prank_mode']:
-                for uid in self.uids:
-                    self.assignments[uid] = Role.merlin
-            else:
+            if not self.config.get('prank_everyone_is'):
                 for uid, r in zip(shuffled(self.uids),self.config['roles']):
                     self.assignments[uid] = r
                     self.role_lookup[r].add(uid)
+            else:
+                for uid in self.uids:
+                    self.assignments[uid] = self.config['prank_everyone_is']
+
 
     @property
     def players(self):
@@ -131,6 +133,13 @@ class Room:
             return 'danger'
         else:
             return 'warning'
+
+    def get_prank_targets(self, your_role, valid_fakes, target):
+        fake_people_num = len([role for role in target if
+                               role is not your_role and role in self.config['roles']])
+        shuffle(valid_fakes)
+        people = valid_fakes[0:fake_people_num]
+        return people
 
     def render(self,uid):
         if self.full and not (uid in self.uids):
@@ -184,12 +193,19 @@ class Room:
         elif your_role in EVIL_ALIGNED_ALL:
             info['original_alignment'] = 'evil'
 
+        valid_fakes = list(names.values())
+        valid_fakes.remove(names[your_uid])
+
         for group,target,description,people_css_class in VISION_MATRIX:
             if your_role not in group: continue
 
             people = [names[uid] for uid in
-                      set.union(*[self.role_lookup.get(role,set()) for role in target])
-                      if uid not in (your_uid,None)]
+                      set.union(*[self.role_lookup.get(role, set()) for role in target])
+                      if uid not in (your_uid, None)]
+
+            if self.config.get('prank_everyone_is'):
+                people = self.get_prank_targets(your_role, valid_fakes, target)
+                valid_fakes = list(fake for fake in valid_fakes if fake not in people)
 
             if people:
                 info['messages'].append({
@@ -197,20 +213,6 @@ class Room:
                     'text': description,
                     'people_css_class': people_css_class,
                 })
-
-        if self.config['prank_mode']:
-            valid_fakes = self.players
-            valid_fakes.remove(names[your_uid])
-
-            num_evil = len(set(self.config['roles']) & set(VISIBLE_EVIL))
-            shuffle(valid_fakes)
-            fake_evil = valid_fakes[0:num_evil]
-
-            info['messages'].append({
-                'people': fake_evil,
-                'text': 'evil as shit',
-                'people_css_class': 'danger'
-            })
 
         if your_role is Role.merlin and Role.mordred in self.config['roles']:
             info['messages'].append({
@@ -267,8 +269,6 @@ def Configuration(form):
 
     conf['selected'] = {r:r in form for r in conf['boxes']}
 
-    conf['prank_mode'] = randint(1, 100) == 1 if form.get('enable_prank_mode') else False
-
     # generate a list of roles
     conf['complaints'] = []
 
@@ -300,6 +300,9 @@ def Configuration(form):
 
         for _ in range(generic):
             conf['roles'].append(role)
+
+    if form.get('enable_prank_mode') and randint(1, 100) == 1:
+        conf['prank_everyone_is'] = choice(list(set(conf['roles'])))
 
     return conf
 
