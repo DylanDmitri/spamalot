@@ -1,6 +1,6 @@
 node_modules/
 .idea/*.*
-__pycache__/*.*
+__pycache__
 secret.txt
 *.out
 *.sublime-workspace

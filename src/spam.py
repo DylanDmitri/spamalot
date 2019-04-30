@@ -5,7 +5,7 @@ from collections import Counter, defaultdict
 from time import time
 import os
 
-filename = os.path.join(os.path.dirname(__file__), 'room_names.txt')
+filename = os.path.join(os.path.dirname(__file__), '../data/room_names.txt')
 WORDS = tuple(n.strip() for n in open(filename))
 NAME_TIMEOUT = 300  # in seconds
 
@@ -72,9 +72,9 @@ def newRoomCode():
     return "BEANS"
 
 def get_secret():
-    if 'secret.txt' not in os.listdir('.'):
-        open('secret.txt', 'w').write(random_string(100))
-    return open('secret.txt').read()
+    if 'secret.txt' not in os.listdir('../'):
+        open('../secret.txt', 'w').write(random_string(100))
+    return open('../secret.txt').read()
 
 def shuffled(i):
     p = list(i)
@@ -316,23 +316,23 @@ app.secret_key = get_secret()
 
 @app.route('/js/bootstrap/<path:path>')
 def send_bootstrap_js(path):
-    return send_from_directory('node_modules/bootstrap/dist/js', path)
+    return send_from_directory('../node_modules/bootstrap/dist/js', path)
 
 @app.route('/css/bootstrap/<path:path>')
 def send_bootstrap_css(path):
-    return send_from_directory('node_modules/bootstrap/dist/css', path)
+    return send_from_directory('../node_modules/bootstrap/dist/css', path)
 
 @app.route('/js/sweetalert2/<path:path>')
 def send_sweetalert_js(path):
-    return send_from_directory('node_modules/sweetalert2/dist', path)
+    return send_from_directory('../node_modules/sweetalert2/dist', path)
 
 @app.route('/css/sweetalert2/<path:path>')
 def send_sweetalert_css(path):
-    return send_from_directory('node_modules/sweetalert2/dist', path)
+    return send_from_directory('../node_modules/sweetalert2/dist', path)
 
 @app.route('/js/jquery/<path:path>')
 def send_jquery(path):
-    return send_from_directory('node_modules/jquery/dist', path)
+    return send_from_directory('../node_modules/jquery/dist', path)
 
 @app.route('/css/<path:path>')
 def send_css(path):
