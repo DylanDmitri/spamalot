@@ -334,10 +334,6 @@ def send_sweetalert_css(path):
 def send_jquery(path):
     return send_from_directory('node_modules/jquery/dist', path)
 
-@app.route('/js/popper/<path:path>')
-def send_popper(path):
-    return send_from_directory('node_modules/popper.js/dist', path)
-
 @app.route('/css/<path:path>')
 def send_css(path):
     return send_from_directory('static/css', path)
