@@ -1,0 +1,30 @@
+{
+  "name": "spamalot",
+  "version": "1.0.0",
+  "description": "Better role assignments in Avalon. [Currently running here.](https://avalon.quenty.org/)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DylanDmitri/spamalot.git"
+  },
+  "keywords": [
+    "python3",
+    "flask",
+    "avalon"
+  ],
+  "author": "James Onnen, Dylan Gray",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/DylanDmitri/spamalot/issues"
+  },
+  "homepage": "https://github.com/DylanDmitri/spamalot#readme",
+  "dependencies": {
+    "bootstrap": "^4.3.1",
+    "jquery": "^3.3.1",
+    "popper.js": "^1.14.7",
+    "sweetalert2": "^8.9.0"
+  }
+}
